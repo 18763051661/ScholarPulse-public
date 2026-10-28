@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>ScholarPulse · 创意内容生成工坊</title>
+<style>
+  body { font-family:"Microsoft YaHei",sans-serif; background:#f6f2fb; color:#1a1a2e; margin:0; padding:22px; }
+  .wrap { max-width:980px; margin:0 auto; }
+  h1 { color:#4a1a7a; font-size:21px; margin:0 0 4px; }
+  .hint { font-size:12.5px; color:#8878a8; margin-bottom:12px; }
+  .card { background:#fff; border:1px solid #e2d7f3; border-radius:12px; padding:16px 20px; margin:14px 0; box-shadow:0 2px 10px rgba(74,26,122,.07); }
+  .card h2 { color:#6b2da0; font-size:15.5px; margin:2px 0 8px; }
+  .step-tag { display:inline-block; background:#6b2da0; color:#fff; border-radius:11px; font-size:12px; padding:2px 10px; margin-right:8px; vertical-align:2px; }
+  input, button, textarea, select { font-family:inherit; font-size:14px; border-radius:7px; }
+  input { padding:7px 10px; border:1px solid #cbb3e6; }
+  input#topic { width:300px; }
+  select { padding:7px; border:1px solid #cbb3e6; }
+  button { background:#4a1a7a; color:#fff; border:0; padding:8px 14px; cursor:pointer; margin:3px 4px 3px 0; transition:.2s; }
+  button:hover { background:#6b2da0; } button:active { transform:scale(.95); }
+  button.ghost { background:#fff; color:#4a1a7a; border:1px solid #4a1a7a; }
+  button:disabled { opacity:.5; cursor:default; }
+  textarea { width:100%; box-sizing:border-box; border:1px solid #cbb3e6; padding:10px; min-height:100px;
+             font-size:13.5px; line-height:1.6; resize:vertical; }
+  #brief { min-height:54px; }
+  .mode { font-size:12px; margin-left:8px; }
+  .err { color:#e74c3c; font-size:13px; padding:8px 10px; background:#fdf0ef; border:1px solid #f5b7b1; border-radius:8px; margin:6px 0; }
+  .hostline { padding:5px 8px; border-left:3px solid #8e44ad; margin:6px 0; background:#faf7fe; border-radius:0 7px 7px 0; font-size:13.5px; }
+  .hostline.b { border-left-color:#e67e22; background:#fdf6ee; }
+  .hostline b { color:#6b2da0; margin-right:6px; }
+  .hostline.b b { color:#d35400; }
+  #stage2, #stage3, #stage4, #stage5 { display:none; }
+  .ttsbar { margin:6px 0; }
+  #videoBox { margin-top:10px; }
+  #videoBox video { width:100%; max-width:640px; border-radius:10px; border:1px solid #d8c7f0; background:#000; }
+  .foot { text-align:center; font-size:12px; color:#8878a8; margin:18px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎬 创意内容生成工坊</h1>
+  <div class="hint">自定义生成（大模型 API 实时创作，拒绝套模板）· 短剧大纲 → 扩写 → 润色 → 双主持脚本 + TTS → 后期 → <b>AI 合成短剧视频</b> · 每步可编辑后推进</div>
+
+  <div class="card" id="stage1">
+    <h2><span class="step-tag">第 1 步</span>自定义生成：短剧大纲（起承转合 4 幕）</h2>
+    主题：<input id="topic" placeholder="如：期末周的逆袭">
+    题材：<select id="genre">
+      <option>校园短剧</option><option>励志成长</option><option>轻喜剧</option>
+      <option>科普情景剧</option><option>悬疑反转</option>
+    </select>
+    <div class="hint" style="margin:8px 0 4px">✍ 自定义要求（会被注入每一段生成：角色名/风格/集数/时长/特殊设定，想怎么拍就怎么写）：</div>
+    <textarea id="brief" placeholder="例：主角叫林小满，是个社恐的编程大神；要有食堂阿姨这个喜剧角色；结局要反转；总时长约 1 分钟……（留空则完全交给 AI 自由发挥）"></textarea>
+    <button onclick="genOutline()">生成大纲</button><span id="m1" class="mode"></span>
+    <div id="e1"></div>
+    <textarea id="outOutline" placeholder="AI 实时生成的大纲会出现在这里，可手动修改后再进入下一步"></textarea>
+    <button class="ghost" onclick="runExpand()">下一步：扩写剧本 →</button>
+  </div>
+
+  <div class="card" id="stage2">
+    <h2><span class="step-tag">第 2 步</span>扩写为完整剧本 <span id="m2" class="mode"></span></h2>
+    <textarea id="outScript"></textarea>
+    <button onclick="runExpand()">🔄 重新扩写</button>
+    <button class="ghost" onclick="runPolish()">下一步：润色 →</button>
+  </div>
+
+  <div class="card" id="stage3">
+    <h2><span class="step-tag">第 3 步</span>润色定稿 <span id="m3" class="mode"></span></h2>
+    <textarea id="outPolish" style="min-height:140px"></textarea>
+    <button onclick="runPolish()">🔄 重新润色</button>
+    <button class="ghost" onclick="runHost()">下一步：双主持脚本 →</button>
+  </div>
+
+  <div class="card" id="stage4">
+    <h2><span class="step-tag">第 4 步</span>双主持口播脚本 + TTS 朗读 <span id="m4" class="mode"></span></h2>
+    <div class="ttsbar">
+      <button onclick="speakHost()">🔊 双声线朗读</button>
+      <button class="ghost" onclick="stopSpeak()">⏹ 停止</button>
+      <span class="hint">Web Speech API：甲/乙自动分配两个中文声线轮换朗读</span>
+    </div>
+    <div id="outHost"></div>
+    <button onclick="runHost()">🔄 重新生成</button>
+    <button class="ghost" onclick="runPost()">下一步：后期清单 →</button>
+  </div>
+
+  <div class="card" id="stage5">
+    <h2><span class="step-tag">第 5 步</span>后期制作清单 + AI 合成短剧视频 <span id="m5" class="mode"></span></h2>
+    <textarea id="outPost" style="min-height:130px"></textarea>
+    <button onclick="runPost()">🔄 重新生成</button>
+    <h2 style="margin-top:14px">🎥 AI 短剧视频合成</h2>
+    <div class="hint">纯浏览器极速合成 5 分钟人物短剧：卡通角色口型/眨眼/挥手 + 场景背景 + 电视剧字幕条 + 每句台词 AI 配音（SAPI5 离线 TTS，角色语速区分）+ BGM；WebCodecs 离线硬编码约 30-60 秒出片，旧浏览器回退实时录制</div>
+    <button onclick="genVideo()">🎥 生成短剧视频 (WebM)</button><span id="vstat" class="mode"></span>
+    <div id="videoBox"></div>
+    <h2 style="margin-top:14px">📤 导出脚本包</h2>
+    <button class="ghost" onclick="dlCreative('md')">Markdown</button>
+    <button class="ghost" onclick="dlCreative('html')">HTML</button>
+    <button class="ghost" onclick="dlCreative('txt')">纯文本 TXT</button>
+  </div>
+
+  <div class="foot">ScholarPulse 创意工坊 · 大模型 API 实时生成（故障转移链）· 生成失败会明确提示，绝不套模板</div>
+</div>
+
+<script src="/static/webm-muxer.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const modeTag = (el, mode) => { el.textContent = mode === 'llm' ? '（大模型实时生成）' : ''; el.className = 'mode'; };
+const brief = () => $('brief').value.trim();
+
+async function post(url, body) {
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body) });
+  if (!r.ok) throw new Error((await r.json()).detail || ('HTTP ' + r.status));
+  return r.json();
+}
+/* 带一次自动重试的生成调用：失败在 errBox 明示，绝不套模板 */
+async function genWithRetry(url, body, errBox, btn) {
+  errBox.innerHTML = '';
+  const old = btn.textContent; btn.disabled = true;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    btn.textContent = attempt === 1 ? '生成中…' : '网络抖动，自动重试中…';
+    try {
+      const d = await post(url, body);
+      btn.disabled = false; btn.textContent = old;
+      if (d.error) { errBox.innerHTML = `<div class="err">⚠ ${d.error}</div>`; return null; }
+      return d;
+    } catch (e) { if (attempt === 2) { errBox.innerHTML = `<div class="err">⚠ 请求失败：${e.message}，请稍后重试</div>`; } }
+  }
+  btn.disabled = false; btn.textContent = old;
+  return null;
+}
+
+async function genOutline() {
+  const d = await genWithRetry('/api/creative/outline',
+    { topic: $('topic').value, genre: $('genre').value, brief: brief() }, $('e1'), $('stage1').querySelector('button'));
+  if (!d) return;
+  $('outOutline').value = d.text; modeTag($('m1'), d.mode);
+  $('outOutline').dataset.mode = d.mode;
+}
+
+async function runExpand() {
+  const o = $('outOutline').value.trim();
+  if (!o) return alert('请先生成大纲');
+  const d = await genWithRetry('/api/creative/expand',
+    { topic: $('topic').value, outline: o, brief: brief() }, $('e1'), $('stage2').querySelector('button') || $('stage1').querySelector('button'));
+  if (!d) return;
+  $('outScript').value = d.text; modeTag($('m2'), d.mode);
+  $('stage2').style.display = 'block'; $('stage2').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function runPolish() {
+  const s = $('outScript').value.trim();
+  if (!s) return alert('请先扩写剧本');
+  const d = await genWithRetry('/api/creative/polish',
+    { topic: $('topic').value, script: s, brief: brief() }, $('e1'), $('stage1').querySelector('button'));
+  if (!d) return;
+  $('outPolish').value = d.text; modeTag($('m3'), d.mode);
+  $('stage3').style.display = 'block'; $('stage3').scrollIntoView({ behavior: 'smooth' });
+}
+
+let hostLines = [];
+async function runHost() {
+  const s = $('outPolish').value.trim();
+  if (!s) return alert('请先润色定稿');
+  const d = await genWithRetry('/api/creative/host',
+    { topic: $('topic').value, script: s, brief: brief() }, $('e1'), $('stage1').querySelector('button'));
+  if (!d) return;
+  hostLines = d.lines || []; modeTag($('m4'), d.mode);
+  $('outHost').innerHTML = hostLines.map(l =>
+    `<div class="hostline ${l.host === '乙' ? 'b' : ''}"><b>${l.host}：</b>${l.text.replace(/</g, '&lt;')}</div>`).join('')
+    || '<i>（无内容）</i>';
+  $('stage4').style.display = 'block'; $('stage4').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function runPost() {
+  const s = $('outPolish').value.trim();
+  if (!s) return alert('请先润色定稿');
+  const d = await genWithRetry('/api/creative/post',
+    { topic: $('topic').value, script: s, brief: brief() }, $('e1'), $('stage1').querySelector('button'));
+  if (!d) return;
+  $('outPost').value = d.text; modeTag($('m5'), d.mode);
+  $('stage5').style.display = 'block'; $('stage5').scrollIntoView({ behavior: 'smooth' });
+}
+
+/* ===== TTS：Web Speech API 双声线轮换 ===== */
+function pickVoices() {
+  const vs = speechSynthesis.getVoices().filter(v => /zh|cmn/i.test(v.lang));
+  return vs.length >= 2 ? [vs[0], vs[1]] : (vs[0] ? [vs[0], vs[0]] : [null, null]);
+}
+function speakHost() {
+  if (!hostLines.length) return;
+  stopSpeak();
+  const [va, vb] = pickVoices();
+  hostLines.forEach((l, i) => {
+    const u = new SpeechSynthesisUtterance(l.text);
+    u.lang = 'zh-CN';
+    const v = l.host === '乙' ? vb : va;
+    if (v) u.voice = v;
+    u.rate = l.host === '乙' ? 1.05 : 0.95;
+    u.pitch = l.host === '乙' ? 1.15 : 0.9;
+    speechSynthesis.speak(u);
+  });
+}
+function stopSpeak() { speechSynthesis.cancel(); }
+if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => pickVoices();
+
+/* ===== AI 短剧视频合成：WebCodecs 离线极速编码（优先）/ MediaRecorder 实时录制（回退） ===== */
+/* 5 分钟人物短剧：程序化卡通角色（口型/眨眼/手势）+ 场景背景（教室/图书馆/操场/宿舍/天台）+ 电视剧字幕条 */
+const V_W = 960, V_H = 540, V_FPS = 20;          // 540p · 20fps 极速档
+const V_TOTAL = 300000;                           // 目标片长 5 分钟（由台词量自适应拉满）
+
+function wrapText(ctx, text, maxW) {
+  const lines = []; let cur = '';
+  for (const ch of text) {
+    if (ctx.measureText(cur + ch).width > maxW) { lines.push(cur); cur = ch; } else cur += ch;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+/* 取剧本并切场景（两条合成路径共用） */
+function _videoPrep() {
+  const script = $('outPolish').value.trim() || $('outScript').value.trim();
+  if (!script) { alert('请先生成/润色剧本'); return null; }
+  const scenes = splitScenesLocal(script, 12);
+  if (!scenes.length) { alert('剧本为空，无法合成视频'); return null; }
+  return { scenes, title: $('topic').value.trim() || '校园短剧' };
+}
+
+/* 台词时间线：解析『角色：台词』行，按字数加权分配，总长精确拉满 5 分钟 */
+let TL = [], SCENES = [];
+function buildTimeline(scenes) {
+  SCENES = scenes;
+  const rows = [];
+  scenes.forEach((sc, si) => sc.lines.forEach(ln => {
+    const m = String(ln).trim().match(/^([^：:]{1,6})[：:]\s*(.+)$/);
+    rows.push(m ? { si, sp: m[1].trim(), text: m[2].trim() }
+                : { si, sp: '', text: String(ln).trim() });
+  }));
+  rows.forEach((r, i) => { r.i = i; r.w = 1 + r.text.length * 0.06; });
+  if (!rows.length) { TL = []; return TL; }
+  const lo = 2200, hi = 9000;
+  for (let round = 0; round < 3; round++) {
+    const wsum = rows.reduce((s, r) => s + r.w, 0) || 1;
+    rows.forEach(r => { r.dur = Math.max(lo, Math.min(hi, r.w / wsum * V_TOTAL)); });
+    const fixedSum = rows.reduce((s, r) => s + r.dur, 0);
+    const rem = V_TOTAL - fixedSum;
+    if (Math.abs(rem) < 30) break;
+    // 把剩余时间按未触界的行重新分配
+    const free = rows.filter(r => !(r.dur <= lo || r.dur >= hi));
+    if (!free.length) break;
+    const fw = free.reduce((s, r) => s + r.w, 0);
+    rows.forEach(r => { const k = free.indexOf(r); if (k >= 0) r.dur += rem * r.w / fw; });
+  }
+  let t = 0;
+  rows.forEach(r => { r.t0 = t; r.t1 = t + Math.max(600, r.dur); t = r.t1; });
+  const diff = V_TOTAL - t;
+  if (rows.length && Math.abs(diff) < 15000) rows[rows.length - 1].t1 += diff;
+  TL = rows;
+  return TL;
+}
+
+/* 角色形象：名字哈希 → 固定肤色/发型/服装（全剧一致，像电视剧同一演员） */
+function actorStyle(name) {
+  let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return {
+    skin: ['#f5cba7', '#f0b27a', '#e6a57e'][h % 3],
+    hair: ['#2b2b2b', '#4a2c17', '#5d4037'][(h >> 2) % 3],
+    cloth: ['#6c8cff', '#2ea86f', '#e67e22', '#8e44ad', '#e74c3c', '#16a085', '#d4a017', '#5d6d7e'][(h >> 4) % 8],
+    style: ['short', 'pony', 'bun'][(h >> 6) % 3]
+  };
+}
+function _rr(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+/* 程序化场景背景：教室/图书馆/操场/宿舍/天台（按场景标题关键词匹配） */
+function drawBg(ctx, title) {
+  const W = V_W, H = V_H;
+  const field = /操场|球场|跑|园|街/.test(title), roof = /天台|楼顶|山/.test(title),
+        lib = /图书|馆|书/.test(title), dorm = /宿舍|家|房|室|餐|店/.test(title);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  if (field) { g.addColorStop(0, '#7ec8f7'); g.addColorStop(.55, '#bfe6ff'); g.addColorStop(.58, '#8fc97e'); g.addColorStop(1, '#5da05a'); }
+  else if (roof) { g.addColorStop(0, '#ff9a5a'); g.addColorStop(.55, '#ffd29a'); g.addColorStop(.58, '#4a3b55'); g.addColorStop(1, '#2f2740'); }
+  else { g.addColorStop(0, '#dfe8f4'); g.addColorStop(.55, '#cfd9e8'); g.addColorStop(.58, '#9aa7b8'); g.addColorStop(1, '#77839a'); }
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  if (field) {
+    ctx.fillStyle = '#fff';
+    for (const [cx, cy, r] of [[160, 80, 34], [215, 82, 25], [700, 60, 30], [758, 62, 23]]) {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill();
+    }
+    ctx.fillStyle = '#c86f4a'; ctx.fillRect(0, H - 110, W, 110);
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 6; i++) ctx.fillRect(30 + i * 160, H - 66, 92, 8);
+  } else if (roof) {
+    ctx.fillStyle = '#ffb347'; ctx.beginPath(); ctx.arc(790, 105, 55, 0, 7); ctx.fill();
+    ctx.fillStyle = '#2f2740';
+    for (let i = 0; i < 7; i++) ctx.fillRect(40 + i * 140, H - 240, 14, 240);
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(0, H - 118, W, 10);
+  } else if (lib) {
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = '#8a5a2b'; ctx.fillRect(70 + i * 290, 70, 250, 240);
+      for (let r = 0; r < 4; r++) {
+        ctx.fillStyle = ['#c0392b', '#27ae60', '#2980b9', '#f39c12', '#8e44ad', '#16a085'][(i * 4 + r) % 6];
+        ctx.fillRect(86 + i * 290, 90 + r * 52, 218, 36);
+      }
+    }
+  } else if (dorm) {
+    ctx.fillStyle = '#b07b4f'; ctx.fillRect(100, 80, 320, 200);          // 公告板/画框
+    ctx.fillStyle = '#fdf6e3'; ctx.fillRect(120, 100, 280, 160);
+    ctx.fillStyle = '#6c5ce7'; ctx.fillRect(560, 60, 200, 240);          // 书柜
+    ctx.fillStyle = '#fdcb6e';
+    for (let r = 0; r < 3; r++) ctx.fillRect(576, 84 + r * 70, 168, 46);
+  } else {                                                               // 教室：黑板 + 窗
+    ctx.fillStyle = '#2f5d4e'; ctx.fillRect(80, 55, 430, 200);
+    ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = 10; ctx.strokeRect(80, 55, 430, 200);
+    ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '22px "Microsoft YaHei"'; ctx.textAlign = 'left';
+    ctx.fillText('今日任务：攻克薄弱考点', 105, 110);
+    ctx.fillText('错题本 → 逐个击破', 105, 150);
+    for (const wx of [560, 760]) {
+      ctx.fillStyle = '#bfe3ff'; ctx.fillRect(wx, 70, 150, 160);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.strokeRect(wx, 70, 150, 160);
+      ctx.beginPath(); ctx.moveTo(wx + 75, 70); ctx.lineTo(wx + 75, 230); ctx.stroke();
+    }
+  }
+  ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.fillRect(0, H - 108, W, 108);   // 地面
+}
+
+/* 卡通人物：呼吸浮动 + 眨眼 + 说话口型开合 + 挥手 */
+function drawActor(ctx, x, gy, h, st, speaking, tNow) {
+  const y = gy - (speaking ? Math.sin(tNow / 150) * 3 : Math.sin(tNow / 900) * 1.5);
+  ctx.fillStyle = 'rgba(0,0,0,.25)';
+  ctx.beginPath(); ctx.ellipse(x, gy + 6, h * 0.26, 9, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = st.cloth; _rr(ctx, x - h * 0.16, y - h * 0.52, h * 0.32, h * 0.5, h * 0.1); ctx.fill();
+  ctx.strokeStyle = st.cloth; ctx.lineWidth = h * 0.065; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x - h * 0.16, y - h * 0.44); ctx.lineTo(x - h * 0.3, y - h * 0.14); ctx.stroke();
+  if (speaking) {                                                        // 说话时抬手挥动
+    const a = -0.9 + Math.sin(tNow / 130) * 0.22;
+    ctx.beginPath(); ctx.moveTo(x + h * 0.16, y - h * 0.44);
+    ctx.lineTo(x + h * 0.16 + h * 0.26 * Math.cos(a), y - h * 0.44 + h * 0.26 * Math.sin(a)); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(x + h * 0.16, y - h * 0.44); ctx.lineTo(x + h * 0.3, y - h * 0.14); ctx.stroke();
+  }
+  const hr = h * 0.155, hy = y - h * 0.62 - hr * 0.55;
+  ctx.fillStyle = st.skin; ctx.beginPath(); ctx.arc(x, hy, hr, 0, 7); ctx.fill();
+  ctx.fillStyle = st.hair;                                              // 发型
+  if (st.style === 'pony') {
+    ctx.beginPath(); ctx.arc(x, hy - hr * 0.22, hr * 0.99, Math.PI, 0); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + hr * 0.98, hy + hr * 0.55, hr * 0.2, hr * 0.55, 0, 0, 7); ctx.fill();
+  } else if (st.style === 'bun') {
+    ctx.beginPath(); ctx.arc(x, hy - hr * 0.22, hr * 0.99, Math.PI, 0); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, hy - hr * 1.2, hr * 0.34, 0, 7); ctx.fill();
+  } else {
+    ctx.beginPath(); ctx.arc(x, hy - hr * 0.16, hr * 1.03, Math.PI * 0.92, Math.PI * 2.08); ctx.fill();
+  }
+  const blink = (tNow % 3200) < 110;                                    // 眨眼
+  ctx.fillStyle = '#222';
+  if (blink) {
+    ctx.fillRect(x - hr * 0.44, hy - 2, hr * 0.26, 3); ctx.fillRect(x + hr * 0.18, hy - 2, hr * 0.26, 3);
+  } else {
+    ctx.beginPath(); ctx.arc(x - hr * 0.32, hy, hr * 0.09, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + hr * 0.32, hy, hr * 0.09, 0, 7); ctx.fill();
+  }
+  if (speaking) {                                                       // 口型
+    ctx.fillStyle = '#a5443a';
+    const mo = 2.5 + Math.abs(Math.sin(tNow / 90)) * hr * 0.36;
+    ctx.beginPath(); ctx.ellipse(x, hy + hr * 0.46, hr * 0.2, mo, 0, 0, 7); ctx.fill();
+  } else {
+    ctx.strokeStyle = '#a5443a'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(x - hr * 0.2, hy + hr * 0.5);
+    ctx.quadraticCurveTo(x, hy + hr * 0.63, x + hr * 0.2, hy + hr * 0.5); ctx.stroke();
+  }
+}
+
+/* 合成一帧：背景 → 场景转场卡 → 在场角色（名牌+口型）→ 电视剧字幕条 → 进度条 */
+function drawTimelineFrame(ctx, ms) {
+  const W = V_W, H = V_H, gy = H - 62;
+  if (!TL.length) return;
+  let row = TL.find(r => ms >= r.t0 && ms < r.t1) || TL[TL.length - 1];
+  const sc = SCENES[row.si] || SCENES[0];
+  const sceneTitle = sc ? sc.title : '';
+  drawBg(ctx, sceneTitle);
+  const newScene = row.i === 0 || TL[row.i - 1].si !== row.si;          // 场景开始 1.6s 打场卡
+  if (newScene && ms < row.t0 + 1600) {
+    const a = Math.max(0, Math.min(1, (ms - row.t0) / 300, (row.t0 + 1600 - ms) / 300));
+    ctx.globalAlpha = a; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 42px "Microsoft YaHei"'; ctx.textAlign = 'center';
+    ctx.fillText(sceneTitle, W / 2, H / 2 - 20);
+    ctx.font = '20px "Microsoft YaHei"'; ctx.fillStyle = '#f39c12';
+    ctx.fillText(`第 ${row.si + 1} / ${SCENES.length} 场`, W / 2, H / 2 + 22);
+    ctx.globalAlpha = 1;
+  }
+  const cast = [];                                                      // 本场出场角色（≤3）
+  for (const r of TL) {
+    if (r.si !== row.si) continue;
+    if (r.sp && r.sp !== '旁白' && !cast.includes(r.sp)) cast.push(r.sp);
+    if (cast.length >= 3) break;
+  }
+  const speaking = row.sp || '';
+  cast.forEach((name, i) => {
+    const n = cast.length;
+    const slotX = n === 1 ? W * 0.5 : [W * 0.26, W * 0.5, W * 0.74][i];
+    const isSp = name === speaking;
+    drawActor(ctx, slotX, gy, 235 * (isSp ? 1.05 : 0.94), actorStyle(name), isSp, ms);
+    const tagY = gy - 235 * (isSp ? 1.05 : 0.94) - 20;
+    ctx.textAlign = 'center';
+    if (isSp) { ctx.fillStyle = 'rgba(243,156,18,.95)'; _rr(ctx, slotX - 52, tagY - 22, 104, 30, 9); ctx.fill(); ctx.fillStyle = '#221a05'; }
+    else { ctx.fillStyle = 'rgba(10,14,30,.55)'; _rr(ctx, slotX - 44, tagY - 20, 88, 27, 8); ctx.fill(); ctx.fillStyle = '#cfd8ea'; }
+    ctx.font = (isSp ? 'bold ' : '') + '19px "Microsoft YaHei"';
+    ctx.fillText(name, slotX, tagY);
+  });
+  if (row.text) {                                                       // 字幕条
+    ctx.fillStyle = 'rgba(0,0,0,.62)'; ctx.fillRect(0, H - 92, W, 92);
+    ctx.font = '25px "Microsoft YaHei"'; ctx.textAlign = 'center';
+    const label = row.sp ? `${row.sp}：${row.text}` : `（旁白）${row.text}`;
+    ctx.fillStyle = '#fff';
+    wrapText(ctx, label, W - 150).slice(0, 2).forEach((wl, i) => ctx.fillText(wl, W / 2, H - 54 + i * 31));
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(0, H - 8, W, 8);
+  ctx.fillStyle = '#f39c12'; ctx.fillRect(0, H - 8, W * (ms / V_TOTAL), 8);
+}
+
+/* 极速路径：WebCodecs 离线编码——6000 帧逐帧硬编码，5 分钟成片约 30-60 秒出（Chrome/Edge） */
+async function _genVideoFast(prep, stat) {
+  const { title } = prep;
+  buildTimeline(prep.scenes);
+  if (!TL.length) throw new Error('剧本没有可用台词');
+  const total = TL[TL.length - 1].t1;
+  const nFrames = Math.max(2, Math.round(total / 1000 * V_FPS));
+  const muxer = new WebMMuxer.Muxer({
+    target: new WebMMuxer.ArrayBufferTarget(),
+    video: { codec: 'V_VP8', width: V_W, height: V_H, frameRate: V_FPS },
+    audio: { codec: 'A_OPUS', numberOfChannels: 2, sampleRate: 48000 },
+    firstTimestampBehavior: 'offset'
+  });
+  let vErr = null;
+  const venc = new VideoEncoder({ output: (c, m) => muxer.addVideoChunk(c, m), error: e => { vErr = e; } });
+  venc.configure({ codec: 'vp8', width: V_W, height: V_H, bitrate: 1800000, framerate: V_FPS });
+  /* BGM：先离线渲染 16 秒 C-Am-F-G 琶音模式，再循环平铺到全片（毫秒级，替代实时合成） */
+  const aenc = new AudioEncoder({ output: (c, m) => muxer.addAudioChunk(c, m), error: () => {} });
+  aenc.configure({ codec: 'opus', sampleRate: 48000, numberOfChannels: 2, bitrate: 128000 });
+  const CHORDS = [[261.6, 329.6, 392.0], [220.0, 261.6, 329.6], [174.6, 220.0, 261.6], [196.0, 246.9, 293.7]];
+  const oac = new OfflineAudioContext(2, 48000 * 16, 48000);          // 8 小节 × 2 秒
+  for (let bar = 0; bar < 8; bar++) {
+    CHORDS[bar % 4].forEach((f, k) => {
+      const t = bar * 2 + k * 0.14, o = oac.createOscillator(), g = oac.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.38, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+      o.connect(g); g.connect(oac.destination); o.start(t); o.stop(t + 1.9);
+    });
+  }
+  const pat = await oac.startRendering();
+  /* AI 角色配音：后端 SAPI5 离线合成（每角色固定语速声线）→ 失败自动回退纯 BGM */
+  let speechBuf = null;
+  try {
+    stat.textContent = '🎙 AI 配音合成中…（每句台词都配声，约需 1 分钟）';
+    const rows = TL.filter(r => r.text).map(r => ({
+      text: r.text, key: r.sp || '旁白',
+      offset_ms: Math.round(r.t0),
+      max_ms: Math.max(1200, Math.round(r.t1 - r.t0 - 120))
+    }));
+    const resp = await fetch('/api/creative/tts', { method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ total_ms: Math.round(total), rows }) });
+    if (resp.ok) {
+      const ab = await resp.arrayBuffer();
+      if (ab.byteLength > 1000)
+        speechBuf = await new OfflineAudioContext(2, 48000, 48000).decodeAudioData(ab);
+    }
+  } catch (e) { console.warn('TTS 不可用，回退纯 BGM：', e); }
+  window.__ttsMissing = !speechBuf;   /* 配音缺失需让用户看见，而不是静默回退 */
+  /* BGM 循环 + 配音 离线混音为整片音轨 */
+  const mixCtx = new OfflineAudioContext(2, Math.ceil(48000 * total / 1000), 48000);
+  const bg = mixCtx.createBufferSource(); bg.buffer = pat; bg.loop = true;
+  const bgG = mixCtx.createGain(); bgG.gain.value = speechBuf ? 0.13 : 0.3;
+  bg.connect(bgG); bgG.connect(mixCtx.destination); bg.start(0);
+  if (speechBuf) {
+    const sp = mixCtx.createBufferSource(); sp.buffer = speechBuf;
+    const spG = mixCtx.createGain(); spG.gain.value = 1.25;
+    sp.connect(spG); spG.connect(mixCtx.destination); sp.start(0);
+  }
+  const mixed = await mixCtx.startRendering();
+  /* 音频编码：f32-planar 分块（20ms @ 48kHz） */
+  const CH = mixed.numberOfChannels, block = 960, totalSamples = mixed.length;
+  for (let off = 0; off < totalSamples; off += block) {
+    const n = Math.min(block, totalSamples - off);
+    const data = new Float32Array(n * CH);
+    for (let c = 0; c < CH; c++) data.set(mixed.getChannelData(c).subarray(off, off + n), c * n);
+    const ad = new AudioData({ format: 'f32-planar', sampleRate: 48000, numberOfFrames: n,
+      numberOfChannels: CH, timestamp: Math.round(off / 48000 * 1e6), data });
+    aenc.encode(ad); ad.close();
+  }
+  await aenc.flush(); aenc.close();
+  /* 视频帧：离屏逐帧绘制人物短剧后立即硬编码 */
+  const canvas = document.createElement('canvas');
+  canvas.width = V_W; canvas.height = V_H;
+  const ctx = canvas.getContext('2d');
+  for (let i = 0; i < nFrames; i++) {
+    if (vErr) throw vErr;
+    drawTimelineFrame(ctx, i / V_FPS * 1000);
+    const vf = new VideoFrame(canvas, { timestamp: Math.round(i * 1e6 / V_FPS), duration: Math.round(1e6 / V_FPS) });
+    venc.encode(vf, { keyFrame: i % (V_FPS * 2) === 0 });
+    vf.close();
+    if (i % 150 === 0) {
+      stat.textContent = `⚡ 5 分钟短剧极速合成 ${Math.round(i / nFrames * 100)}%`;
+      await new Promise(r => setTimeout(r));
+    }
+    while (venc.encodeQueueSize > 16) await new Promise(r => setTimeout(r, 2));
+  }
+  await venc.flush(); venc.close();
+  muxer.finalize();
+  const blob = new Blob([muxer.target.buffer], { type: 'video/webm' });
+  if (!blob.size) throw new Error('编码输出为空');
+  return blob;
+}
+
+/* 回退路径：MediaRecorder 实时录制（旧浏览器兜底，录制 5 分钟） */
+async function _genVideoRTC(prep, stat) {
+  const canvas = document.createElement('canvas');
+  canvas.width = V_W; canvas.height = V_H;
+  const ctx = canvas.getContext('2d');
+  buildTimeline(prep.scenes);
+  if (!TL.length) throw new Error('剧本没有可用台词');
+  const total = TL[TL.length - 1].t1;
+  const stream = canvas.captureStream(V_FPS);
+  let mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+    .find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+  let rec;
+  try { rec = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 1800000 } : {}); }
+  catch (e) { rec = new MediaRecorder(stream); }
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  const done = new Promise(res => { rec.onstop = res; });
+  rec.start(1000);
+  const t0 = performance.now();
+  await new Promise(resolve => {
+    (function frame(now) {
+      const el = now - t0;
+      drawTimelineFrame(ctx, el);
+      if (el < total) requestAnimationFrame(frame); else resolve();
+    })(t0);
+  });
+  rec.stop();
+  await done;
+  if (!chunks.length) throw new Error('实时录制未捕获到任何数据');
+  return new Blob(chunks, { type: mime || 'video/webm' });
+}
+
+function _finishVideo(blob, title, stat) {
+  const url = URL.createObjectURL(blob);
+  const ttsWarn = window.__ttsMissing
+    ? `<div class="hint" style="color:#c0392b">⚠️ 本次视频没有角色配音：后端 TTS 服务不可用（仅有 BGM）。请确认 python -m uvicorn webapp.app:app --port 8321 正在运行，然后重新生成。</div>` : '';
+  $('videoBox').innerHTML = `<video controls src="${url}"></video>
+    <div class="hint">✅ 视频已生成（${(blob.size / 1024 / 1024).toFixed(1)} MB）· 右键或播放器菜单可另存到本地</div>${ttsWarn}`;
+  const a = document.createElement('a');
+  a.href = url; a.download = `短剧_${title}.webm`; a.click();
+  stat.textContent = `✅ ${(blob.size / 1024 / 1024).toFixed(1)} MB${window.__ttsMissing ? ' · ⚠️ 无配音' : ' · 🎙 含配音'}`;
+}
+
+async function genVideo() {
+  const prep = _videoPrep(); if (!prep) return;
+  const stat = $('vstat');
+  const canFast = window.WebMMuxer && 'VideoEncoder' in window && 'AudioEncoder' in window && 'VideoFrame' in window;
+  let blob = null;
+  if (canFast) {
+    try { blob = await _genVideoFast(prep, stat); }
+    catch (e) { console.warn('极速路径失败，回退实时录制：', e); }
+  }
+  if (!blob) {
+    stat.textContent = '录制中…（实时模式：请保持页面在前台）';
+    blob = await _genVideoRTC(prep, stat);
+  }
+  _finishVideo(blob, prep.title, stat);
+}
+
+/* 错误兜底：任何一步抛错都显示在状态栏而不是静默崩溃 */
+const _genVideo = genVideo;
+genVideo = async function () {
+  const stat = $('vstat');
+  try { await _genVideo(); }
+  catch (e) { stat.textContent = `❌ 合成失败：${e.message || e}（建议换 Chrome/Edge 最新版重试）`; }
+};
+
+/* 与后端 split_scenes 同逻辑的前端版（避免请求往返） */
+function splitScenesLocal(script, maxScenes) {
+  const text = script.trim();
+  if (!text) return [];
+  let blocks;
+  if (text.includes('【') && text.includes('】')) {
+    blocks = []; let cur = null;
+    for (const raw of text.split('\n')) {
+      const s = raw.trim();
+      if (s.startsWith('【') && s.includes('】')) { if (cur) blocks.push(cur); cur = [s]; }
+      else if (cur && s) cur.push(s);
+    }
+    if (cur) blocks.push(cur);
+  } else {
+    blocks = text.split(/\n\s*\n/).filter(b => b.trim());
+    if (blocks.length === 1) blocks = text.split('\n').filter(b => b.trim());
+  }
+  return blocks.slice(0, maxScenes).map(b => {
+    const ls = b.map(x => x.trim()).filter(Boolean);
+    let title = ls[0] || '';
+    if (title.startsWith('【') && title.includes('】')) title = title.split('】')[0].replace(/【/g, '');
+    return { title: title.slice(0, 24), lines: ls.slice(1, 7).length ? ls.slice(1, 7) : [title] };
+  });
+}
+
+/* ===== 导出 ===== */
+async function dlCreative(fmt) {
+  const body = {
+    title: $('topic').value.trim() || '校园短剧',
+    outline: $('outOutline').value, script: $('outScript').value,
+    host: hostLines.map(l => `${l.host}：${l.text}`).join('\n'),
+    post: $('outPost').value, fmt
+  };
+  try {
+    const r = await fetch('/api/creative/export', { method: 'POST',
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error('导出失败');
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = decodeURIComponent((r.headers.get('content-disposition') || '').split("''")[1] || ('creative.' + fmt));
+    a.click(); URL.revokeObjectURL(a.href);
+  } catch (e) { alert(e.message); }
+}
+
+/* 首页「AI 短剧视频」一键直达：?video=1 自动滚动到视频合成区 */
+if (new URLSearchParams(location.search).get('video') === '1') {
+  setTimeout(() => $('stage5').scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+}
+</script>
+</body>
+</html>

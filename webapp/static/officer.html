@@ -1,0 +1,469 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScholarPulse · 学区总监驾驶舱</title>
+<style>
+:root{--bg:#0b1020;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);
+  --acc:#6c8cff;--good:#2ee6a8;--warn:#ffb454;--bad:#ff6b81;--txt:#e8ecff}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,"Microsoft YaHei",sans-serif;
+  background:radial-gradient(1200px 700px at 70% -10%,#1b2a5e 0%,var(--bg) 55%);color:var(--txt);height:100vh;overflow:hidden}
+.layout{display:flex;height:100vh}
+.side{width:210px;background:rgba(0,0,0,.25);border-right:1px solid var(--line);padding:14px 10px;flex-shrink:0}
+.logo{font-weight:800;font-size:17px;margin:4px 8px 16px;background:linear-gradient(90deg,#6c8cff,#b06cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.menu{display:block;width:100%;text-align:left;background:transparent;border:0;color:#b9c4e8;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;margin-bottom:2px}
+.menu:hover{background:rgba(108,140,255,.12)} .menu.active{background:linear-gradient(90deg,#5b7cff,#8a5bff);color:#fff}
+.side .back{margin-top:18px;font-size:12px;color:#9fb0e8;text-decoration:none;display:block;padding:0 12px}
+.main{flex:1;padding:20px;overflow:auto}
+.top{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.pill{background:var(--card);border:1px solid var(--line);padding:4px 12px;border-radius:20px;font-size:12px}
+.panel{display:none} .panel.active{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;backdrop-filter:blur(8px)}
+.card.hot{border-color:var(--acc);box-shadow:0 0 0 1px rgba(108,140,255,.35)}
+h3{margin:0 0 10px;font-size:13px;color:#9fb0e8;letter-spacing:.5px}
+button{background:linear-gradient(90deg,#5b7cff,#8a5bff);color:#fff;border:0;padding:8px 14px;border-radius:9px;cursor:pointer;font-size:13px}
+button:disabled{opacity:.5;cursor:wait}
+button.ghost{background:transparent;border:1px solid var(--line)}
+input,select,textarea{width:100%;padding:8px;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--txt);font-size:13px}
+canvas{width:100%;height:360px;border-radius:10px;background:rgba(0,0,0,.25)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.big{font-size:30px;font-weight:800}
+.sub{font-size:12px;color:#9fb0e8;margin-top:6px;line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{color:#9fb0e8;font-weight:600}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:12px}
+.brief{border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;line-height:1.7}
+.brief .tid{font-weight:700;font-size:13px}
+.brief.hot{border-color:var(--acc)}
+.badge{display:inline-block;background:rgba(108,140,255,.2);color:#aabaff;border-radius:6px;padding:1px 7px;font-size:11px;margin-left:6px}
+.tag{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.hbar{height:16px;border-radius:5px;background:rgba(108,140,255,.25);margin:5px 0;position:relative}
+.hbar>div{height:100%;border-radius:5px}
+.hbar span{position:absolute;right:6px;top:0;font-size:11px;line-height:16px}
+.report{white-space:pre-wrap;font-size:13.5px;line-height:1.9}
+.legend{display:flex;gap:14px;font-size:12px;color:#9fb0e8;margin-top:8px}
+</style></head><body>
+<div class="layout">
+  <div class="side">
+    <div class="logo">◆ 学区总监驾驶舱</div>
+    <button class="menu active" data-p="dash">🛰️ 治理驾驶舱</button>
+    <button class="menu" data-p="gov">🏛️ 层级治理分析</button>
+    <button class="menu" data-p="epi">🦠 误区疫情</button>
+    <button class="menu" data-p="rag">🧠 检索增强洞察</button>
+    <button class="menu" data-p="policy">🧪 政策沙盘</button>
+    <button class="menu" data-p="chief">🎯 总监副官</button>
+    <a class="back" href="/">← 返回学生端</a>
+    <a class="back" href="/teacher">教师后台 →</a>
+    <div class="sub" style="padding:12px">
+      四层一体：L0 合成人口 → L1 ABM 仿真 → L2 层级治理<br>
+      L3 误区流行病学 → L4 反事实沙盘 → L4b 听证会<br>
+      🎯 ReAct 副官：自主调用全部 18 个工具
+    </div>
+  </div>
+  <div class="main">
+    <div class="top">
+      <span class="pill" id="statusPill">数据状态检测中…</span>
+      <span class="pill" id="archPill">LangGraph · 80 教师智能体 · 350 学生智能体</span>
+    </div>
+
+    <!-- ① 治理驾驶舱 -->
+    <div class="panel active" id="p-dash">
+      <div class="row" style="margin-bottom:14px">
+        <button class="ghost" onclick="doSeed(this)">① 合成人口（80师/350生）</button>
+        <button class="ghost" onclick="doSimulate(this)">② ABM 仿真 30 天</button>
+        <span class="sub" id="simNote">流程：先①再②，其他面板的数据均由此产生</span>
+      </div>
+      <div class="grid4">
+        <div class="card"><h3>教师规模</h3><div class="big" id="kT">—</div><div class="sub">LangGraph Send 并行画像</div></div>
+        <div class="card"><h3>学生规模</h3><div class="big" id="kS">—</div><div class="sub">含社交网络 635+ 边</div></div>
+        <div class="card"><h3>全区平均掌握</h3><div class="big" id="kA">—</div><div class="sub" id="kTiers"></div></div>
+        <div class="card"><h3>风险班级</h3><div class="big" id="kR" style="color:var(--warn)">—</div><div class="sub">班均 &lt; 0.5 计为风险</div></div>
+      </div>
+      <div class="card" style="margin-top:14px"><h3>80 班平均掌握度横条图（红 &lt;0.4 ≤ 黄 &lt;0.6 ≤ 绿）</h3>
+        <canvas id="cvBars"></canvas></div>
+    </div>
+
+    <!-- ② 层级治理分析 -->
+    <div class="panel" id="p-gov">
+      <div class="card">
+        <h3>Map-Reduce 治理：80 教师智能体并行画像 → Top-K 深析 → 总监归约</h3>
+        <div class="row">
+          <span class="sub">Top-K 风险班：</span>
+          <input id="topk" type="number" value="5" min="1" max="20" style="width:70px">
+          <button onclick="runGov(this)">触发治理分析（Send 扇出 + Reflexion 评审）</button>
+          <button class="ghost" onclick="loadGovResult()">读取上次结果</button>
+        </div>
+        <div id="govReport" class="report" style="margin-top:14px">尚未运行。</div>
+        <div id="govCritique" class="sub"></div>
+      </div>
+      <div id="govGrid" class="bgrid"></div>
+    </div>
+
+    <!-- ③ 误区疫情 -->
+    <div class="panel" id="p-epi">
+      <div class="grid2">
+        <div class="card"><h3>误区 SIR 传播曲线（(学生,考点) 单元）</h3>
+          <canvas id="cvSir"></canvas>
+          <div class="legend"><span><i class="tag" style="background:var(--acc)"></i>S 易感</span>
+            <span><i class="tag" style="background:var(--bad)"></i>I 持有误区</span>
+            <span><i class="tag" style="background:var(--good)"></i>R 已纠正</span></div></div>
+        <div class="card"><h3>干预回测（同 seed 重放，反事实对比）</h3>
+          <div class="row">
+            <select id="ivCid" style="flex:1"></select>
+            <select id="ivAct" style="width:150px"><option value="regroup">拆散学习小组</option><option value="vaccine">疫苗式复习（枢纽免疫）</option></select>
+            <button onclick="doIntervene(this)">回测</button>
+          </div>
+          <div id="ivOut" class="sub" style="margin-top:12px">选择概念与干预方式后回测。</div></div>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="card"><h3>逐概念 R0 = β·k·D（降序 · 前 12）</h3><div id="r0Table"></div></div>
+        <div class="card"><h3>超级传播者 Top 10（特征向量中心性）</h3><div id="ssTable"></div></div>
+      </div>
+    </div>
+
+    <!-- ③b 检索增强洞察（RAG 深嵌治理链路） -->
+    <div class="panel" id="p-rag">
+      <div class="card">
+        <h3>🧠 检索增强学区洞察：三通道混合检索（特征哈希密集 + CSR 稀疏矩阵 BM25 + 硅基流动语义 → RRF 融合）+ GraphRAG 先修图扩展</h3>
+        <div class="sub" style="margin-top:6px">
+          对「误区疫情」R0 最高的考点逐个检索学区语料库取证课件原文——总监看到的每条风险都有可追溯的检索证据链，LLM 简报只允许引用证据（grounded synthesis）。
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button onclick="runRag(this)">生成检索增强洞察（约 3-10 秒）</button>
+          <span class="sub" id="ragMeta"></span>
+        </div>
+      </div>
+      <div class="card" id="ragBriefCard" style="margin-top:14px;border-color:var(--acc);display:none">
+        <h3>📋 LLM 行动简报（grounded · 仅引用检索证据）</h3>
+        <div id="ragBrief" class="report"></div>
+        <div id="ragActions" style="margin-top:8px"></div>
+      </div>
+      <div id="ragOut" style="margin-top:14px"></div>
+    </div>
+
+    <!-- ④ 政策沙盘 -->
+    <div class="panel" id="p-policy">
+      <div class="card">
+        <h3>反事实 RCT：解析 → 能力配对分组 → 同 seed 双世界 30 天 → bootstrap 95% CI</h3>
+        <textarea id="policyText" rows="2">对掌握度低于0.4的学生每天增加2道复习题</textarea>
+        <div class="row" style="margin-top:8px">
+          <span class="sub">观察天数</span><input id="polDays" type="number" value="30" min="5" max="60" style="width:70px">
+          <button onclick="runPolicy(this)">运行政策实验（约 10-40 秒）</button>
+        </div>
+      </div>
+      <div class="grid4" style="margin-top:14px">
+        <div class="card"><h3>平均效应 Δ</h3><div class="big" id="pDelta">—</div><div class="sub">处理组逐生 Δ 均值</div></div>
+        <div class="card"><h3>95% CI</h3><div class="big" id="pCI" style="font-size:19px">—</div><div class="sub">bootstrap ×500</div></div>
+        <div class="card"><h3>对照组溢出</h3><div class="big" id="pSpill">—</div><div class="sub">经社交图的间接效应</div></div>
+        <div class="card"><h3>处理组规模</h3><div class="big" id="pN">—</div><div class="sub">能力先验匹配对随机分派</div></div>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="card"><h3>处理组日均掌握度：基线世界 vs 处理世界</h3>
+          <canvas id="cvPolicy"></canvas>
+          <div class="legend"><span><i class="tag" style="background:#8a93b8"></i>基线世界（无政策）</span>
+            <span><i class="tag" style="background:var(--good)"></i>处理世界（同 seed）</span></div></div>
+        <div class="card"><h3>分层效应与顾问意见</h3>
+          <div id="pTiers"></div>
+          <div id="pNarr" class="report" style="margin-top:10px">尚未运行。</div>
+          <div id="pRisk" class="sub"></div></div>
+      </div>
+      <div class="card" style="margin-top:14px;border-color:var(--acc)">
+        <h3>⚖️ 政策听证委员会（L4b · 社会性）：效率 / 公平 / 风险 三派两轮交叉辩论 → 主持人裁决</h3>
+        <div class="row">
+          <button onclick="runDebate(this)">召开听证会（约 20-60 秒 · 7 次 LLM）</button>
+          <span class="sub">对最近一次沙盘结果合议；无沙盘结果会提示 400</span>
+        </div>
+        <div id="debateOut" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- ⑤ 总监副官（ReAct 自主智能体 · 多轮记忆） -->
+    <div class="panel" id="p-chief">
+      <div class="card">
+        <h3>🎯 总监副官（自主性）：ReAct 循环 · 自主决定调用哪个工具、调几次、何时收口 · 支持连续追问</h3>
+        <div class="row">
+          <input id="chiefIn" placeholder="例：分析当前学区最紧迫的风险，并给出政策建议…" style="flex:1"
+                 onkeydown="if(event.key==='Enter')askChief()">
+          <button onclick="askChief()">询问副官</button>
+        </div>
+        <div class="sub" style="margin-top:6px">工具面：18 个 LangChain @tool（单生学情 / 班级诊断 / 教学法 / 学区治理 / 疫情 / 沙盘 / 听证会）。
+          学区级问题建议先完成 ①②。</div>
+      </div>
+      <div id="chiefLog" style="margin-top:14px"></div>
+    </div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function j(u,o){return fetch(u,o).then(r=>r.json())}
+function post(u,b){return j(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})}
+document.querySelectorAll('.menu').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.menu').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');$('p-'+b.dataset.p).classList.add('active');
+  ({dash:loadOverview,gov:loadGovResult,epi:loadEpi,rag:loadRag}[b.dataset.p]||(()=>{}))();
+});
+
+// ---------- ① 驾驶舱 ----------
+async function loadOverview(){
+  const d=await j('/api/society/overview');
+  $('statusPill').textContent=d.n_teachers?`已就绪：${d.n_teachers} 师 / ${d.n_students} 生`:'未初始化：请先点击 ① 合成人口';
+  if(!d.n_teachers)return;
+  $('kT').textContent=d.n_teachers; $('kS').textContent=d.n_students;
+  $('kA').textContent=(d.avg_mastery*100).toFixed(1)+'%';
+  $('kTiers').textContent='基础 '+d.tier_dist.foundation+' · 巩固 '+d.tier_dist.consolidation+' · 拓展 '+d.tier_dist.extension;
+  $('kR').textContent=d.risk_classes;
+  drawBars(d.classes);
+}
+async function doSeed(btn){
+  btn.disabled=true;btn.textContent='合成中…';
+  const d=await post('/api/society/seed',{seed:42});
+  $('simNote').textContent=`已合成 ${d.teachers} 师 / ${d.students} 生 / ${d.edges} 边 / ${d.groups} 小组，考点 ${d.concepts} 个。接着点 ②`;
+  btn.disabled=false;btn.textContent='① 合成人口（80师/350生）';loadOverview();
+}
+async function doSimulate(btn){
+  btn.disabled=true;btn.textContent='仿真中…（约数秒）';
+  const d=await post('/api/society/simulate',{days:30,seed:42});
+  $('simNote').textContent=`${d.days} 天产出 ${d.answers_generated} 条答题，全区均分 ${(d.avg_mastery*100).toFixed(1)}%，耗时 ${d.runtime_ms}ms`;
+  btn.disabled=false;btn.textContent='② ABM 仿真 30 天';loadOverview();
+}
+function drawBars(classes){
+  const cv=$('cvBars'),cx=cv.getContext('2d');
+  cv.width=cv.clientWidth*2;cv.height=720;cx.scale(2,2);
+  const W=cv.clientWidth,H=360;cx.clearRect(0,0,W,H);
+  const sorted=[...classes].sort((a,b)=>a.avg-b.avg),bh=H/sorted.length;
+  sorted.forEach((c,i)=>{
+    const y=i*bh+1,w=Math.max(2,(W-120)*c.avg);
+    cx.fillStyle=c.avg<0.4?'#ff6b81':(c.avg<0.6?'#ffb454':'#2ee6a8');
+    cx.globalAlpha=.85;cx.fillRect(52,y,w,bh-2.5);cx.globalAlpha=1;
+    cx.fillStyle='#9fb0e8';cx.font='9px sans-serif';
+    cx.fillText(`${c.tid} ${c.name}`,4,y+bh-4);
+    cx.fillStyle='#e8ecff';cx.fillText(c.avg.toFixed(2),58+w,y+bh-4);
+  });
+}
+
+// ---------- ② 治理分析 ----------
+async function runGov(btn){
+  btn.disabled=true;btn.textContent='治理中…（Send 扇出 80 路并行）';
+  $('govReport').textContent='80 个教师智能体画像中 → Top-K 深析 → 总监归约…';
+  try{
+    const d=await post('/api/governance/analyze',{top_k:+$('topk').value||5});
+    renderGov(d);
+  }catch(e){$('govReport').textContent='治理失败：'+e}
+  btn.disabled=false;btn.textContent='触发治理分析（约 30-60 秒 · 6 次 LLM）';
+}
+async function loadGovResult(){
+  const d=await j('/api/governance/result');
+  if(d&&d.briefs&&d.briefs.length)renderGov(d);
+}
+function renderGov(d){
+  $('govReport').textContent=`【学区总监报告 · 第 ${d.rounds||1} 稿 · LLM 调用 ${d.llm_calls} 次 · Top-K=${d.top_k} · ${d.ts}】\n`+d.global_report;
+  $('govCritique').textContent=(d.rounds||1)>1
+    ? '♻️ Reflexion：评审官曾驳回初稿，总监已按修订意见重写。'
+    : (d.critique?'⚠️ 评审官意见（轮次预算用尽，未再修订）：'+d.critique:'✅ 评审官：报告通过审查。');
+  const deep=new Set(d.briefs.filter(b=>b.llm_analysis).map(b=>b.tid));
+  $('govGrid').innerHTML=d.briefs.map(b=>`
+    <div class="brief ${deep.has(b.tid)?'hot':''}" title="${b.llm_analysis||''}">
+      <div class="tid">${b.tid}${deep.has(b.tid)?'<span class="badge">已深析</span>':''}</div>
+      班均 <b style="color:${b.avg_mastery<0.4?'var(--bad)':b.avg_mastery<0.6?'var(--warn)':'var(--good)'}">${b.avg_mastery.toFixed(2)}</b>
+      · ${b.n_students} 人 · 高危 ${b.at_risk.length}
+      <br>薄弱：${b.weak_concepts.join('、')||'—'}
+      <br>风险分 ${b.risk_score.toFixed(2)}
+    </div>`).join('');
+}
+
+// ---------- ③ 误区疫情 ----------
+let topR0='';
+async function loadEpi(){
+  const d=await j('/api/epidemic/dashboard');
+  if(!d.sir_curve||!d.sir_curve.length){
+    $('r0Table').innerHTML='<div class="sub">尚无疫情数据：请先在驾驶舱完成 ①②。</div>';return;
+  }
+  drawSir(d.sir_curve);
+  $('r0Table').innerHTML='<table><tr><th>考点</th><th>R0</th><th>β</th><th>k̄</th><th>D̄</th><th>感染人数</th></tr>'+
+    d.r0_list.slice(0,12).map(r=>`<tr><td>${r.name}</td><td style="color:${r.r0>1?'var(--bad)':'var(--good)'}"><b>${r.r0.toFixed(2)}</b></td>
+    <td>${r.beta.toFixed(3)}</td><td>${r.k.toFixed(1)}</td><td>${r.d.toFixed(1)}</td><td>${r.infected_n}</td></tr>`).join('')+'</table>';
+  $('ssTable').innerHTML='<table><tr><th>学生</th><th>度</th><th>中心性</th><th>误区数</th></tr>'+
+    d.superspreaders.map(s=>`<tr><td>${s.name}<span class="sub">(${s.sid})</span></td><td>${s.degree}</td><td>${s.eigen.toFixed(3)}</td><td>${s.infected_concepts}</td></tr>`).join('')+'</table>';
+  $('ivCid').innerHTML=d.r0_list.map(r=>`<option value="${r.cid}">${r.name}（R0=${r.r0.toFixed(2)}）</option>`).join('');
+  topR0=d.r0_list[0]&&d.r0_list[0].cid;
+}
+function drawSir(curve){
+  const cv=$('cvSir'),cx=cv.getContext('2d');
+  cv.width=cv.clientWidth*2;cv.height=720;cx.scale(2,2);
+  const W=cv.clientWidth,H=360,pad=30;
+  cx.clearRect(0,0,W,H);
+  const maxV=Math.max(...curve.map(c=>Math.max(c.s,c.i,c.r)));
+  const X=d=>pad+(W-pad-8)*(d-curve[0].day)/(curve[curve.length-1].day-curve[0].day);
+  const Y=v=>H-20-(H-40)*v/maxV;
+  [[c=>c.s,'#6c8cff'],[c=>c.i,'#ff6b81'],[c=>c.r,'#2ee6a8']].forEach(([f,col])=>{
+    cx.strokeStyle=col;cx.lineWidth=1.8;cx.beginPath();
+    curve.forEach((c,i)=>i?cx.lineTo(X(c.day),Y(f(c))):cx.moveTo(X(c.day),Y(f(c))));cx.stroke();
+  });
+  cx.fillStyle='#9fb0e8';cx.font='10px sans-serif';
+  cx.fillText('max='+maxV,4,12);cx.fillText('day '+curve[curve.length-1].day,W-46,H-6);
+}
+async function doIntervene(btn){
+  btn.disabled=true;btn.textContent='回测中…';
+  const d=await post('/api/epidemic/intervene',{cid:$('ivCid').value,action:$('ivAct').value});
+  const e=d.effect,bar=(v,max,col)=>`<div class="hbar"><div style="width:${max?Math.max(2,v/max*100):0}%;background:${col}"></div></div>`;
+  const mx=Math.max(d.before.peak_i,d.after.peak_i,1);
+  $('ivOut').innerHTML=`
+    <b>${d.action==='regroup'?'拆散学习小组':'疫苗式复习'}</b> 对「${$('ivCid').selectedOptions[0].textContent.split('（')[0]}」的反事实回测：<br><br>
+    感染峰值 I：${bar(d.before.peak_i,mx,'#ff6b81')} ${d.before.peak_i} → ${bar(d.after.peak_i,mx,'#2ee6a8')} ${d.after.peak_i}<br>
+    最终康复 R：${d.before.final_r} → ${d.after.final_r}<br>
+    感染总人数：${d.before.infected_n} → ${d.after.infected_n}<br>
+    <b style="color:var(--good)">阻止感染 ${e.infections_averted} 人次（${(e.averted_pct*100).toFixed(1)}%）</b>`;
+  btn.disabled=false;btn.textContent='回测';
+}
+
+// ---------- ③b 检索增强洞察 ----------
+let _ragCache=null;
+async function loadRag(){ if(_ragCache)renderRag(_ragCache); else await runRag(); }
+async function runRag(btn){
+  if(btn){btn.disabled=true;btn.textContent='三通道检索 + GraphRAG 取证中…';}
+  $('ragOut').innerHTML='<div class="sub">密集向量 + CSR 稀疏矩阵 BM25 + 语义嵌入 → RRF 融合检索中…</div>';
+  try{
+    const d=await j('/api/district/rag_insight?top_k=4');
+    _ragCache=d;renderRag(d);
+  }catch(e){$('ragOut').innerHTML='<div class="sub">洞察失败：'+e+'</div>';}
+  if(btn){btn.disabled=false;btn.textContent='生成检索增强洞察（约 3-10 秒）';}
+}
+function renderRag(d){
+  if(d.msg){$('ragOut').innerHTML='<div class="sub">'+d.msg+'</div>';return;}
+  const chip=(on,label)=>on?`<span class="pill" style="font-size:11px;padding:1px 8px">${label}</span>`:'';
+  $('ragMeta').textContent=d.items[0]&&d.items[0].channels===3
+    ? `三通道融合（${d.items[0].embed_model||'语义通道在线'}）` : '离线双通道（密集+稀疏）';
+  $('ragBriefCard').style.display=d.brief?'block':'none';
+  $('ragBrief').textContent=d.brief||'';
+  $('ragActions').innerHTML=(d.actions||[]).map(a=>`<div class="sub">▸ ${a}</div>`).join('')+(d.note?`<div class="sub" style="color:var(--warn)">${d.note}</div>`:'');
+  $('ragOut').innerHTML=d.items.map(it=>`
+    <div class="card" style="margin-bottom:12px">
+      <h3>🦠 ${it.name} · R0=${it.r0} · 感染 ${it.infected_n||'—'} 人
+        ${chip(it.channels===3,'3 通道')}${chip(it.channels===2,'2 通道')}</h3>
+      ${(it.hits||[]).map(h=>`
+        <div class="report" style="margin:8px 0;padding:8px 12px;border-left:3px solid var(--acc)">
+          <div class="sub" style="margin-bottom:4px">
+            RRF ${h.rrf.toFixed(4)}
+            ${chip(h.dense&&h.dense.rank,'密集 dense='+h.dense.score)}
+            ${chip(h.sparse&&h.sparse.rank,'稀疏 BM25='+h.sparse.bm25)}
+            ${chip(h.remote,'语义 remote='+(h.remote?h.remote.score:''))}
+          </div>
+          ${h.text}
+        </div>`).join('')||'<div class="sub">语料库无命中——该考点的误区缺乏课件原文支撑，本身就是信号。</div>'}
+      ${(it.graph_context||[]).length?`<div class="sub" style="margin-top:6px">GraphRAG 先修上下文：${it.graph_context.map(g=>`${g.name}（${g.relation}${g.mastery!=null?' · 掌握'+g.mastery:''}）`).join('、')}</div>`:''}
+    </div>`).join('');
+}
+
+// ---------- ④ 政策沙盘 ----------
+async function runPolicy(btn){
+  btn.disabled=true;btn.textContent='实验中…（双世界仿真 + 2 次 LLM）';
+  $('pNarr').textContent='政策解析官 → 实验设计师 → 双世界仿真 → 统计分析师 → 政策顾问…';
+  try{
+    const d=await post('/api/policy/sandbox',{policy_text:$('policyText').value,days:+$('polDays').value||30});
+    renderPolicy(d);
+  }catch(e){$('pNarr').textContent='实验失败：'+e}
+  btn.disabled=false;btn.textContent='运行政策实验（约 10-40 秒）';
+}
+function renderPolicy(d){
+  if(!d.effect||d.effect.delta_avg===undefined){
+    $('pNarr').textContent=d.narrative||'实验未执行。';return;
+  }
+  const e=d.effect;
+  $('pDelta').textContent=(e.delta_avg>=0?'+':'')+(e.delta_avg*100).toFixed(1)+'%';
+  $('pDelta').style.color=e.delta_avg>0?'var(--good)':e.delta_avg<0?'var(--bad)':'var(--txt)';
+  $('pCI').textContent=`[${e.ci95[0].toFixed(3)}, ${e.ci95[1].toFixed(3)}]`;
+  $('pSpill').textContent=(e.spillover_avg>=0?'+':'')+e.spillover_avg.toFixed(3);
+  $('pN').textContent=e.n_treatment;
+  drawTwo(e.curves.baseline,e.curves.treated);
+  $('pTiers').innerHTML='<table><tr><th>学生层</th><th>人数</th><th>Δ 均值</th></tr>'+
+    Object.keys(e.by_tier).map(k=>`<tr><td>${k}</td><td>${(e.tier_n||{})[k]||''}</td>
+    <td style="color:${e.by_tier[k]>0?'var(--good)':'var(--bad)'}">${(e.by_tier[k]>=0?'+':'')}${e.by_tier[k].toFixed(3)}</td></tr>`).join('')+'</table>';
+  $('pNarr').textContent='【政策顾问】'+d.narrative;
+  $('pRisk').textContent='【风险提示】'+d.risk_notes;
+}
+function drawTwo(b,t){
+  const cv=$('cvPolicy'),cx=cv.getContext('2d');
+  cv.width=cv.clientWidth*2;cv.height=720;cx.scale(2,2);
+  const W=cv.clientWidth,H=360,pad=30;
+  cx.clearRect(0,0,W,H);
+  const all=b.concat(t),maxV=Math.max(...all),minV=Math.min(...all);
+  const X=i=>pad+(W-pad-8)*i/(b.length-1);
+  const Y=v=>H-20-(H-40)*(v-minV)/((maxV-minV)||1);
+  [[b,'#8a93b8'],[t,'#2ee6a8']].forEach(([arr,col])=>{
+    cx.strokeStyle=col;cx.lineWidth=2;cx.beginPath();
+    arr.forEach((v,i)=>i?cx.lineTo(X(i),Y(v)):cx.moveTo(X(0),Y(v)));cx.stroke();
+  });
+  cx.fillStyle='#9fb0e8';cx.font='10px sans-serif';
+  cx.fillText(minV.toFixed(2),4,H-24);cx.fillText(maxV.toFixed(2),4,12);
+}
+
+// ---------- ④b 政策听证委员会 ----------
+async function runDebate(btn){
+  btn.disabled=true;btn.textContent='合议中…（三派两轮辩论 + 裁决）';
+  $('debateOut').innerHTML='<div class="sub">效率派 → 公平派 → 风险派 → 第二轮交叉质询 → 主持人裁决…</div>';
+  try{
+    const d=await post('/api/policy/debate');
+    renderDebate(d);
+  }catch(e){
+    $('debateOut').innerHTML='<div class="sub" style="color:var(--warn)">听证会未能召开：'+e+'（请先运行政策沙盘）</div>';
+  }
+  btn.disabled=false;btn.textContent='召开听证会（约 20-60 秒 · 7 次 LLM）';
+}
+function renderDebate(d){
+  const color={efficiency:'var(--acc)',equity:'var(--good)',risk:'var(--warn)'};
+  const name={efficiency:'效率派',equity:'公平派',risk:'风险派'};
+  const vc=d.verdict==='通过'?'var(--good)':(d.verdict==='有条件通过'?'var(--warn)':'var(--bad)');
+  $('debateOut').innerHTML=
+    d.speeches.map(s=>`<div style="border-left:3px solid ${color[s.faction]};padding:6px 12px;margin:8px 0;font-size:13px;line-height:1.8">
+      <b style="color:${color[s.faction]}">${name[s.faction]}</b><span class="badge">第 ${s.round} 轮</span><br>${s.speech}</div>`).join('')+
+    `<div style="background:rgba(108,140,255,.12);border-radius:10px;padding:12px;margin-top:10px">
+      <div style="font-size:15px;font-weight:800">⚖️ 主持人裁决：<span style="color:${vc}">${d.verdict}</span></div>
+      <div class="report" style="margin-top:6px">${d.rationale}</div>
+      <div class="sub" style="margin-top:6px">推行前置条件：${(d.conditions||[]).map(c=>'□ '+c).join('　')}</div>
+    </div>`;
+}
+
+// ---------- ⑤ 总监副官（累积式多轮对话 · 会话记忆） ----------
+const TOOL_CN={predict_exam_points:'考点押题',feynman_check:'费曼检查',socratic_probe:'苏格拉底追问',
+  diagnose_error:'错因诊断',trace_root_cause:'根因追溯',recommend_review:'复习推荐',
+  write_motivation_letter:'劝学短信',make_flashcards:'闪卡生成',build_twin_profile:'数字孪生',
+  query_weak_points:'薄弱点查询',class_weak_map:'班级热力图',class_risk_scan:'掉队风险扫描',
+  make_quiz_for_student:'分层出题',
+  seed_society_tool:'合成人口',run_abm:'ABM 仿真',governance_analyze:'治理分析',
+  epidemic_dashboard:'疫情仪表盘',policy_sandbox:'政策沙盘',policy_committee:'听证会'};
+let chiefSession='';
+async function askChief(){
+  const q=$('chiefIn').value.trim();if(!q)return;
+  const btn=document.querySelector('#p-chief button');
+  btn.disabled=true;
+  $('chiefIn').value='';
+  const log=$('chiefLog');
+  const round=document.createElement('div');
+  round.className='card';
+  round.style.marginBottom='12px';
+  round.innerHTML=`<h3>👑 总监：${q.replace(/</g,'&lt;')}</h3>
+    <div class="cSteps"><div class="sub">副官思考中…（ReAct：选工具 → 观察结果 → 再决策 → 收口）</div></div>
+    <div class="cAns report" style="margin-top:10px"></div>`;
+  log.appendChild(round);
+  log.scrollIntoView({behavior:'smooth',block:'end'});
+  try{
+    const d=await post('/api/chief/ask',{message:q,session_id:chiefSession});
+    chiefSession=d.session_id||chiefSession;
+    round.querySelector('.cSteps').innerHTML=(d.steps||[]).length
+      ? d.steps.map((s,i)=>`<div style="border-left:3px solid var(--acc);padding:6px 12px;margin:8px 0;font-size:12.5px;line-height:1.7">
+          <b>第 ${i+1} 步 · ${TOOL_CN[s.tool]||s.tool}</b><span class="badge">${s.tool}</span>
+          <div class="sub">参数：${JSON.stringify(s.args)}</div>
+          <div>结果摘要：${(s.result||'（无）').slice(0,180)}</div></div>`).join('')
+      : '<div class="sub">副官本轮未调用工具，直接作答。</div>';
+    round.querySelector('.cAns').textContent=d.answer||('（副官未给出答复）'+(d.error?'｜降级原因：'+d.error:''));
+  }catch(e){
+    round.querySelector('.cAns').textContent='副官调用失败：'+e;
+  }
+  btn.disabled=false;
+}
+
+loadOverview();
+</script>
+</body></html>

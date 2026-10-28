@@ -1,0 +1,20 @@
+# Multi-vendor failover HTTP client (DeepSeek / Qwen / Doubao are all OpenAI-compatible)
+httpx>=0.27
+
+# Orchestration
+langgraph>=0.2.50
+langchain-core>=0.2.43
+
+# Config / structured data
+pydantic>=2.7
+python-dotenv>=1.0
+jinja2>=3.1
+
+# Sparse matrix algorithms (CSR BM25/TF-IDF vectorized retrieval)
+scipy>=1.13
+numpy>=1.26
+
+# Web backend
+fastapi>=0.111
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9

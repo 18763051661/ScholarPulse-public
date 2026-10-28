@@ -1,0 +1,1424 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScholarPulse · 学脉工作台</title>
+<style>
+:root{--bg:#0b1020;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);
+  --acc:#6c8cff;--good:#2ee6a8;--warn:#ffb454;--bad:#ff6b81;--txt:#e8ecff}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,"Microsoft YaHei",sans-serif;
+  background:radial-gradient(1200px 700px at 70% -10%,#1b2a5e 0%,var(--bg) 55%);color:var(--txt);height:100vh;overflow:hidden}
+.layout{display:flex;height:100vh}
+.side{width:210px;background:rgba(0,0,0,.25);border-right:1px solid var(--line);padding:14px 10px;overflow:auto;flex-shrink:0}
+.logo{font-weight:800;font-size:17px;margin:4px 8px 16px;background:linear-gradient(90deg,#6c8cff,#b06cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.menu{display:block;width:100%;text-align:left;background:transparent;border:0;color:#b9c4e8;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;margin-bottom:2px}
+.menu:hover{background:rgba(108,140,255,.12)} .menu.active{background:linear-gradient(90deg,#5b7cff,#8a5bff);color:#fff}
+.main{flex:1;padding:20px;overflow:auto}
+.top{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+.pill{background:var(--card);border:1px solid var(--line);padding:4px 12px;border-radius:20px;font-size:12px}
+.panel{display:none} .panel.active{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;backdrop-filter:blur(8px)}
+h3{margin:0 0 10px;font-size:13px;color:#9fb0e8;letter-spacing:.5px}
+button{background:linear-gradient(90deg,#5b7cff,#8a5bff);color:#fff;border:0;padding:8px 14px;border-radius:9px;cursor:pointer;font-size:13px}
+button.ghost{background:transparent;border:1px solid var(--line)}
+input,textarea{width:100%;padding:8px;border-radius:9px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--txt);font-size:13px}
+canvas{width:100%;height:360px;border-radius:10px;background:rgba(0,0,0,.25)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.big{font-size:30px;font-weight:800}
+#loginBox{max-width:400px;margin:8% auto;text-align:center;padding:28px}
+.group{font-size:11px;color:#7c8bb8;letter-spacing:1px;margin:12px 8px 4px;border-top:1px solid rgba(255,255,255,.06);padding-top:10px}
+.menu .ic{margin-right:6px}
+.hero{font-size:13px;color:#9fb0e8;margin:10px 0 6px}
+.stat3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+</style></head><body>
+<div class="layout">
+  <div class="side">
+    <div class="logo">◆ ScholarPulse</div>
+    <div style="display:flex;gap:6px;margin:0 6px 4px">
+      <a href="/officer" style="flex:1;text-align:center;background:rgba(108,140,255,.15);border:1px solid var(--line);border-radius:8px;padding:6px 0;font-size:12px;color:#cdd7ff;text-decoration:none">🏛️ 管理员</a>
+      <a href="/teacher" style="flex:1;text-align:center;background:rgba(108,140,255,.15);border:1px solid var(--line);border-radius:8px;padding:6px 0;font-size:12px;color:#cdd7ff;text-decoration:none">🏫 教师</a>
+      <a href="/static/report.html" style="flex:1;text-align:center;background:rgba(108,140,255,.15);border:1px solid var(--line);border-radius:8px;padding:6px 0;font-size:12px;color:#cdd7ff;text-decoration:none">📚 学习报告</a>
+      <a href="/static/creative.html" style="flex:1;text-align:center;background:rgba(108,140,255,.15);border:1px solid var(--line);border-radius:8px;padding:6px 0;font-size:12px;color:#cdd7ff;text-decoration:none">🎬 创意工坊</a>
+    </div>
+    <div class="group">总览</div>
+    <button class="menu active" data-p="dash"><span class="ic">📊</span>仪表盘</button>
+    <div class="group">AI 学习</div>
+    <button class="menu" data-p="chat"><span class="ic">🎓</span>AI 助教</button>
+    <button class="menu" data-p="diagnose"><span class="ic">🩺</span>认知断层问诊</button>
+    <button class="menu" data-p="root"><span class="ic">🌳</span>根因追溯</button>
+    <button class="menu" data-p="oracle"><span class="ic">🔮</span>考点押题</button>
+    <button class="menu" data-p="advanced"><span class="ic">🧠</span>AI 深度诊断</button>
+    <div class="group">练习与复习</div>
+    <button class="menu" data-p="quiz"><span class="ic">✍️</span>今日自测</button>
+    <button class="menu" data-p="review"><span class="ic">🔁</span>间隔复习</button>
+    <button class="menu" data-p="wrong"><span class="ic">📕</span>错题本</button>
+    <div class="group">互动学习</div>
+    <button class="menu" data-p="debate"><span class="ic">⚖️</span>辩论评审</button>
+    <button class="menu" data-p="twin"><span class="ic">🧬</span>孪生对抗</button>
+    <button class="menu" data-p="feynman"><span class="ic">�️</span>费曼练习</button>
+    <div class="group">创新亮点 · 一键直达</div>
+    <div style="display:grid;gap:4px;margin:0 6px 4px">
+      <a onclick="location='/static/report.html?sid='+(sid||'s001')" style="cursor:pointer;text-align:center;background:rgba(108,140,255,.15);border:1px solid var(--line);border-radius:8px;padding:6px 0;font-size:12px;color:#cdd7ff;text-decoration:none">🧭 流光学情导图</a>
+      <a onclick="location='/static/report.html?sid='+(sid||'s001')+'&tour=1'" style="cursor:pointer;text-align:center;background:rgba(142,68,173,.22);border:1px solid rgba(142,68,173,.5);border-radius:8px;padding:6px 0;font-size:12px;color:#e2ccff;text-decoration:none">🧠 薄弱链巡游</a>
+      <a onclick="location='/static/creative.html?video=1'" style="cursor:pointer;text-align:center;background:rgba(243,156,18,.18);border:1px solid rgba(243,156,18,.5);border-radius:8px;padding:6px 0;font-size:12px;color:#ffd9a0;text-decoration:none">🎥 AI 短剧视频</a>
+      <a onclick="location='/static/creative.html'" style="cursor:pointer;text-align:center;background:rgba(46,230,168,.14);border:1px solid rgba(46,230,168,.4);border-radius:8px;padding:6px 0;font-size:12px;color:#c9f7e6;text-decoration:none">🎬 创意工坊全流程</a>
+      <a href="/eval" style="text-align:center;background:rgba(108,140,255,.15);border:1px solid rgba(108,140,255,.45);border-radius:8px;padding:6px 0;font-size:12px;color:#cdd7ff;text-decoration:none">🔬 RAG 检索评测</a>
+      <a href="/gen-eval" style="text-align:center;background:rgba(255,180,84,.13);border:1px solid rgba(255,180,84,.42);border-radius:8px;padding:6px 0;font-size:12px;color:#ffe0b8;text-decoration:none">🧪 生成质量抽检</a>
+      <a href="/models" style="text-align:center;background:rgba(46,230,168,.13);border:1px solid rgba(46,230,168,.4);border-radius:8px;padding:6px 0;font-size:12px;color:#c9f7e6;text-decoration:none">🤖 模型配置 / token</a>
+    </div>
+    <div class="group">更多功能</div>
+    <div id="moreMenus"></div>
+    <button class="menu" data-p="upload"><span class="ic">📤</span>上传课件</button>
+    <button class="menu" data-p="report"><span class="ic">📄</span>15 天报告</button>
+  </div>
+  <div class="main">
+    <div id="loginBox" class="card">
+      <div style="font-size:40px">🎓</div>
+      <div style="font-weight:800;font-size:20px;margin:6px 0 2px">ScholarPulse 学脉</div>
+      <div class="hero">多智能体驱动的个人学习工作台<br>AI 学伴 · 认知问诊 · 数字孪生 · 反思出题</div>
+      <div class="row" style="margin-top:14px"><input id="sid" placeholder="学号（演示：s001）" style="flex:1;text-align:center">
+      <button onclick="login()">进入工作台</button></div>
+      <div class="hero" style="margin-top:12px;font-size:11px;color:#7c8bb8">学生在 s001–s350 · 教师端请用 T001–T080</div>
+    </div>
+    <div id="work" style="display:none">
+      <div class="top">
+        <span class="pill" id="hello"></span><span class="pill" id="tier"></span>
+        <span class="pill" id="streak"></span><span class="pill" id="llmPill" title="">⏳ LLM</span>
+        <a href="/officer" style="margin-left:auto;font-size:12px;color:#9fb0e8;text-decoration:none">🏛️ 总监驾驶舱（管理员）</a>
+      <a href="/teacher" style="margin-left:8px;font-size:12px;color:#9fb0e8;text-decoration:none">教师后台 →</a>
+      </div>
+
+      <div class="panel active" id="p-dash">
+        <div class="stat3">
+          <div class="card" style="text-align:center"><h3>平均掌握度</h3><div class="big" id="avg"></div></div>
+          <div class="card" style="text-align:center"><h3>今日到期复习</h3><div class="big" id="dueN" style="color:#ffb454"></div><div style="font-size:12px;color:#8fa0d0" id="dueTip"></div></div>
+          <div class="card" style="text-align:center"><h3>学习连续天数</h3><div class="big" id="streakN" style="color:#2ee6a8"></div><div style="font-size:12px;color:#8fa0d0" id="tierTip"></div></div>
+        </div>
+        <div class="card"><h3>最短提分路径（按投入产出排序）</h3><div id="plan" style="font-size:13px;line-height:1.9"></div></div>
+      </div>
+
+      <div class="panel" id="p-chat"><div class="card" style="height:520px;display:flex;flex-direction:column">
+        <h3>AI 助教（项目问答 · 课件溯源 · 学情诊断）</h3>
+        <div id="chatlog" style="flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+          <div class="b ai" style="background:rgba(108,140,255,.15);padding:9px 12px;border-radius:10px;align-self:flex-start;max-width:85%">你好！可以问我：某个功能在哪、课件里这句话什么意思、我该先学什么、哪里最弱。</div>
+        </div>
+        <div class="row"><input id="chatin" placeholder="输入你的问题..." style="flex:1" onkeydown="if(event.key==='Enter')sendChat()">
+        <button onclick="sendChat()">发送</button></div>
+      </div></div>
+
+      <div class="panel" id="p-diagnose"><div class="card">
+        <h3>🩺 认知断层问诊（沿前置链定位真正断点）</h3>
+        <div class="row"><button onclick="runDiagnose()">开始问诊</button></div>
+        <div id="diagOut" style="margin-top:12px;font-size:14px;line-height:1.9"></div>
+      </div></div>
+
+      <div class="panel" id="p-debate"><div class="card">
+        <h3>⚖️ 多智能体辩论评审（宽松派 vs 严格派 vs 裁判）</h3>
+        <input id="debateQ" placeholder="题目，例如：什么是死锁？" style="width:100%;margin-bottom:8px;padding:8px" />
+        <textarea id="debateA" placeholder="你的答案..." style="width:100%;height:70px;padding:8px;margin-bottom:8px"></textarea>
+        <button onclick="runDebate()">开始辩论评审</button>
+        <div id="debateOut" style="margin-top:14px;font-size:14px;line-height:1.8"></div>
+      </div></div>
+
+      <div class="panel" id="p-graph"><div class="card"><h3>你的知识星图</h3><canvas id="cv"></canvas></div></div>
+
+      <div class="panel" id="p-twin">
+        <div class="grid2">
+          <div class="card"><h3>🧬 你的数字孪生画像（AI 学着模仿你）</h3>
+            <div id="twinProfile" style="font-size:13px;line-height:1.9">加载中…</div></div>
+          <div class="card"><h3>⚔️ 对战：你 vs 模拟的你</h3>
+            <div id="twinBattle" style="font-size:13px;line-height:1.8">点击"开始对战"，红方智能体将针对你的认知盲区出一道诱饵题。</div>
+            <div class="row" style="margin-top:10px"><button onclick="twinStart()">开始对战</button></div></div>
+        </div>
+        <div class="card" style="margin-top:14px"><h3>📣 揭晓（双盲作答后对比）</h3>
+          <div id="twinReveal" style="font-size:14px;line-height:1.9">尚无对局。</div></div>
+        <div class="grid2" style="margin-top:14px">
+          <div class="card"><h3>🏆 比分板</h3><div id="twinScore" class="big">—</div>
+            <div id="twinScoreSub" style="font-size:12px;color:#9fb0e8;margin-top:6px">你赢=你比 AI 更懂你；孪生赢=它的预测成真，该警惕了</div></div>
+          <div class="card"><h3>🔭 孪生相似度（越高 = AI 越懂你）</h3><div id="twinSim" class="big">—</div>
+            <div id="twinTrend" style="font-size:12px;color:#9fb0e8;margin-top:6px">尚无趋势数据</div></div>
+        </div>
+      </div>
+
+      <div class="panel" id="p-upload"><div class="card"><h3>上传课件</h3>
+        <div class="row"><input type="file" id="file" style="flex:1"><button onclick="upload()">解析课件</button></div>
+        <div id="upResult" style="margin-top:8px;font-size:13px;color:#9fb0e8"></div></div></div>
+      <div class="panel" id="p-quiz"><div class="card"><h3>今日分层自测（Elo 自适应 CAT）</h3><div id="quizBriefBox" style="margin-bottom:10px;font-size:13px"></div><div id="quizBox"></div></div></div>
+      <div class="panel" id="p-review"><div class="card"><h3>间隔复习</h3><div id="reviewBox" style="font-size:14px"></div></div></div>
+      <div class="panel" id="p-wrong"><div class="card"><h3>📕 错题检察院（LangChain ReAct 检察官）</h3>
+        <div style="font-size:12px;color:#8fa0d0;margin-bottom:8px">每个顽固错题簇=一桩未决案件。检察官自主取证（调卷宗→查先修→查康复）后当庭宣判：<b style="color:#ff6b81">真性薄弱</b> / <b style="color:#ffb454">假性康复（背答案嫌疑）</b> / <b style="color:#2ee6a8">已自愈结案</b> / <b style="color:#b08bff">上游传染</b>。提审答辩通过=当庭结案。</div>
+        <button onclick="courtOpen(1)">⚖️ 重新侦查（检察官出庭取证）</button>
+        <div id="courtBox" style="margin-top:10px;font-size:14px"><i>翻阅判决档案中…</i></div></div></div>
+      <div class="panel" id="p-feynman"><div class="card"><h3>费曼练习（用自己的话讲）</h3>
+        <input id="fm_c" value="死锁" style="margin-bottom:8px"><textarea id="fm_t" rows="3" placeholder="用大白话解释..."></textarea>
+        <div class="row" style="margin-top:8px"><button onclick="feynman()">讲解并诊断</button></div>
+        <div id="fm_out" style="margin-top:10px;font-size:14px"></div></div></div>
+      <div class="panel" id="p-root"><div class="card"><h3>🌳 根因追溯（LangChain ReAct 侦探）</h3>
+        <div style="font-size:12px;color:#8fa0d0;margin-bottom:8px">侦探对你的最薄弱考点立案：调掌握度图谱 → 沿先修链扫描 → 核对上下游错误时间先后 → 宣布真凶并归档。</div>
+        <button onclick="rootTrace(1)">🔍 重新查案</button>
+        <div id="rootOut" style="margin-top:10px;font-size:14px"></div></div></div>
+      <div class="panel" id="p-oracle"><div class="card"><h3>🔮 考点押题（LangChain ReAct 先知）</h3>
+        <div style="font-size:12px;color:#8fa0d0;margin-bottom:8px">先知采集三路证据——同班共性薄弱 × 你的错题本 × 考试权重榜——交叉研判押 5 题，落盘押题清单。</div>
+        <button onclick="oracleRun(1)">🔮 重新研判</button>
+        <div id="oracleOut" style="margin-top:10px;font-size:14px"></div></div></div>
+      <div class="panel" id="p-report"><div class="card"><h3>15天学情报告</h3>
+        <div class="row"><button onclick="loadReport()">生成报告</button></div>
+        <div id="report" style="margin-top:10px;font-size:14px;line-height:1.7"></div></div></div>
+      <div class="panel" id="p-advanced"><div class="card"><h3>AI深度诊断</h3>
+        <div class="row"><button onclick="runForensic()">🧠 法医尸检（ReAct 智能体）</button></div>
+        <div id="advOut" style="margin-top:10px;font-size:14px;line-height:1.8"></div></div></div>
+      <div class="panel" id="p-teacher"><div class="card"><h3>班级看板</h3><div id="teacherOut" style="font-size:14px"></div></div></div>
+    </div>
+  </div>
+</div>
+<script>
+let sid="",nodes=[],edges=[];
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+function j(u,o){return fetch(u,o).then(r=>r.json())}
+// ReAct 工具轨迹渲染器（8 个洞察面板共用）
+function reactTrace(r,label='智能体轨迹'){
+  const steps=r.steps||[];
+  const det=`<details style="margin-top:8px;font-size:12px;color:#8fa0d0"><summary>${label}（${steps.length} 次工具调用）</summary>${steps.map(s=>`<div style="margin:4px 0">🔧 <b>${s.tool}</b>(${Object.entries(s.args||{}).map(([k,v])=>k+'='+String(v).slice(0,26)).join(', ')})<br><span style="opacity:.8">↳ ${(s.result||'').slice(0,160)}</span></div>`).join('')}</details>`;
+  return `<div style="padding:10px;background:rgba(108,140,255,.1);border-radius:8px;margin-bottom:10px"><b style="color:#8fa5ff">🤖 ${label.replace('轨迹','')}：</b>${r.answer||'(智能体沉默)'}</div>${det}`;
+}
+
+// 动态功能菜单（全部真实现：真 LLM / 真数据，无占位壳）
+const MENUS = ["知识星图","AI讲师","追问模式","相似题","思维导图","闪卡记忆","术语表","公式本",
+ "错题聚类","学习搭子","成就徽章","学习时长","情绪状态","认知负荷","成本监控",
+ "模拟考试","学生画像","班级对比","遗忘曲线",
+ "博士答辩","生成式CAT","因果推断","深度反思",
+ "资源分配","学习规划"];
+const holder=document.getElementById('moreMenus');
+MENUS.forEach((m,i)=>{
+  const b=document.createElement('button');
+  b.className='menu'; b.dataset.p='dyn'+i; b.textContent=m;
+  holder.appendChild(b);
+  const p=document.createElement('div'); p.className='panel'; p.id='p-dyn'+i;
+  p.innerHTML='<div class="card"><h3>'+m+'</h3><p style="color:#9fb0e8">点击加载数据…</p></div>';
+  document.querySelector('.main #work').appendChild(p);
+});
+async function loadMenuData(i,m,p){
+  const out=p.querySelector('.card');
+  try{
+    const s=await j('/api/state?sid='+sid);
+    const c=s.concepts||[];
+    const weak=s.weak_plan||[];
+    const copts=c.map(x=>`<option>${x.name}</option>`).join('');
+    if(m==='知识星图'){
+      out.innerHTML='<h3>🌟 星图制图师（ReAct 智能体）</h3><i>制图师正在扫描星图拓扑…</i>';
+      const r=await j('/api/insight/star-map?sid='+sid);
+      const tp=r.topology||{},pa=r.path||[];
+      out.innerHTML=`<h3>🌟 星图制图师（ReAct · 知识星图拓扑 + 学习路径导航）</h3>
+        ${reactTrace(r,'星图制图师轨迹')}
+        <p>星图规模：<b>${tp.n_nodes||0}</b> 节点 / <b>${tp.n_edges||0}</b> 条依赖 · 最深链 <b>${tp.max_chain_depth||0}</b> 层</p>
+        <p style="color:#8fa0d0">孤岛（没接上主干）：${(tp.isolated||[]).join('、')||'无'} | 枢纽（被多考点依赖）：${(tp.bridges||[]).map(b=>b[0]+'('+b[1]+')').join('、')||'无'}</p>
+        <p style="color:#2ee6a8">推荐学习路径：${pa.map((x,i)=>`${i+1}.${x.name}${x.mastery!=null?'('+x.mastery+')':''}`).join(' → ')||'先上传课件'}</p>`;
+    } else if(m==='学习搭子'){
+      out.innerHTML=`<h3>👥 学习搭子（学生-学生多智能体互考 · 按掌握度向量匹配互补搭子）</h3>
+        <div class="row"><button onclick="buddyMatch()">匹配学习搭子</button></div>
+        <div id="bdOut" style="margin-top:12px;font-size:14px;line-height:1.9">点击匹配：系统从全班找一个「他的强项=你的弱项」的互补搭子，然后你们互相出题——他考你，你考他（AI 扮演他作答，你来当裁判）。</div>`;
+    } else if(m==='AI讲师'){
+      out.innerHTML=`<h3>🎓 AI 讲师（真 LLM · 结合你的掌握度讲解）</h3>
+        <div class="row"><select id="aiC">${copts}</select><button onclick="aiTutor()">讲解</button>
+        <button class="ghost" onclick="aiMnemonic()">编个记忆口诀</button></div>
+        <div id="aiOut" style="margin-top:12px;font-size:14px;line-height:1.9;color:#cdd7ff">选择考点后点「讲解」。</div>`;
+    } else if(m==='追问模式'){
+      out.innerHTML=`<h3>🔁 追问模式（苏格拉底式：AI 只提问不给答案，答错会指出矛盾）</h3>
+        <div class="row"><select id="fuC">${copts}</select><button onclick="fuStart()">开始追问</button></div>
+        <div id="fuLog" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
+        <div class="row" id="fuIn" style="display:none;margin-top:8px"><input id="fuMsg" style="flex:1" placeholder="回答 AI 的追问…" onkeydown="if(event.key==='Enter')fuNext()">
+        <button onclick="fuNext()">回复</button></div>`;
+    } else if(m==='相似题'){
+      out.innerHTML=`<h3>🔄 相似变式题（真 LLM · 针对你的薄弱点变形出题）</h3>
+        <div class="row"><select id="siC">${copts}</select><button onclick="aiSimilar()">出 3 道变式题</button></div>
+        <div id="siOut" style="margin-top:12px;font-size:14px;line-height:1.9"></div>`;
+    } else if(m==='思维导图'){
+      out.innerHTML=`<h3>🗺️ 思维导图（节点=考点 · 颜色=掌握度 <span style="color:#2ee6a8">绿≥60%</span>/<span style="color:#ffb454">黄</span>/<span style="color:#ff6b81">红&lt;35%</span> · 灰=未学 · 连线=前置依赖）</h3>
+        <canvas id="mmCv" style="width:100%;height:430px;background:rgba(0,0,0,.25);border-radius:10px"></canvas>
+        <div style="margin-top:6px;font-size:12px;color:#8fa0d0">自上而下学习：每条连线的上游是下游的前置——先补红的上游节点。</div>`;
+      const cv2=document.getElementById('mmCv'),W=cv2.clientWidth||800,H=430;
+      cv2.width=W;cv2.height=H;const g=cv2.getContext('2d');
+      const byId={};c.forEach(x=>byId[x.cid]=x);   // prereq 存的是 cid，用 cid 建索引
+      const dep=(n,seen)=>{if(!byId[n]||seen.has(n))return 0;seen.add(n);
+        const ps=byId[n].prereq.filter(p=>byId[p]);
+        return ps.length?Math.max(...ps.map(p=>dep(p,seen)))+1:0};
+      const layers={};c.forEach(x=>{const d=dep(x.cid,new Set());(layers[d]=layers[d]||[]).push(x)});
+      const lvls=Object.keys(layers).map(Number).sort((a,b)=>a-b);
+      const pos={};
+      lvls.forEach(d=>{const arr=layers[d];arr.forEach((x,i)=>{
+        pos[x.cid]={x:(i+0.5)*W/arr.length,y:40+d*(H-90)/Math.max(lvls.length-1,1)}})});
+      g.strokeStyle='rgba(140,160,220,.35)';g.lineWidth=1.2;
+      lvls.forEach(d=>layers[d].forEach(x=>x.prereq.forEach(p=>{if(pos[p]){
+        g.beginPath();g.moveTo(pos[p].x,pos[p].y+13);g.lineTo(pos[x.cid].x,pos[x.cid].y-13);g.stroke()}})));
+      c.forEach(x=>{const p=pos[x.cid];if(!p)return;
+        const mcol=x.mastery==null?'#5a6280':(x.mastery>=0.6?'#2ee6a8':x.mastery>=0.35?'#ffb454':'#ff6b81');
+        g.beginPath();g.arc(p.x,p.y,13,0,7);g.fillStyle=mcol;g.fill();
+        if(x.mastery!=null&&x.mastery<0.35){g.strokeStyle='#ff6b81';g.lineWidth=2.5;g.beginPath();g.arc(p.x,p.y,17,0,7);g.stroke()}
+        g.fillStyle='#e8ecff';g.font='11px sans-serif';g.textAlign='center';
+        g.fillText(x.name.length>7?x.name.slice(0,7)+'…':x.name,p.x,p.y+30);
+        if(x.mastery!=null){g.fillStyle='#8fa0d0';g.fillText((x.mastery*100).toFixed(0)+'%',p.x,p.y-19)}});
+    } else if(m==='错题聚类'){
+      const r=await j('/api/student/mistakes/clinic?sid='+sid);
+      out.innerHTML=`<h3>🏥 错题病理科（真实答题记录 · ${r.n_records} 条）</h3>`+
+        '<div style="font-size:12px;color:#8fa0d0;margin-bottom:8px">每个错题簇=一个「病灶」：<b style="color:#ff6b81">🦠 根因</b>=上游概念也在错（先治上游，下游或自愈）；风险=错误率×未掌握度×频次；处方由 LLM 病理医生开具。</div>'+
+        (r.clusters.length?r.clusters.map((x,i)=>`<div style="padding:8px;margin:4px 0;background:#ffffff10;border-radius:6px">
+          <b>${x.concept}</b> 错 ${x.wrong}/${x.total} 次
+          ${x.pathology?`<span style="display:inline-block;padding:2px 9px;margin-left:6px;background:#8a5bff33;border-radius:12px;font-size:11px">🩺 ${x.pathology}</span>`:''}
+          ${x.is_root===false?`<span style="display:inline-block;padding:2px 9px;margin-left:6px;background:#ffb45433;border-radius:12px;font-size:11px">⚠️ 感染自 ${(x.upstream||[]).join('、')}——先治上游</span>`
+            :(x.is_root?'<span style="display:inline-block;padding:2px 9px;margin-left:6px;background:#ff6b8133;border-radius:12px;font-size:11px">🦠 根因病灶</span>':'')}
+          ${x.risk!=null?`<span style="display:inline-block;padding:2px 9px;margin-left:6px;background:${x.risk>=60?'#ff6b8133':x.risk>=40?'#ffb45433':'#2ee6a833'};border-radius:12px;font-size:11px">复发风险 ${x.risk}</span>`:''}
+          <div class="tbar" style="margin-top:4px"><div style="width:${x.wrong_rate*100}%;background:${x.wrong_rate>0.5?'#ff6b81':'#ffb454'}"></div></div>
+          <small style="color:#8fa0d0">错误率 ${(x.wrong_rate*100).toFixed(0)}%</small>
+          ${x.prescription&&x.prescription.length?`<div style="margin-top:6px;padding:7px;background:rgba(46,230,168,.08);border-radius:7px;font-size:12.5px;line-height:1.7"><b style="color:#2ee6a8">💊 3 天处方：</b><br>${x.prescription.map((p,j)=>`第${j+1}天 ${p}`).join('<br>')}</div>`:''}
+          ${x.last_q?`<div style="margin-top:6px;font-size:13px;color:#cdd7ff">最近错题：${x.last_q}</div>
+          <button class="ghost" style="margin-top:6px;font-size:12px" onclick="interrogate(${i})">🔍 元认知审讯：还原我当时的决策链</button>
+          <div id="itg${i}" style="margin-top:8px;font-size:13px;line-height:1.8"></div>`:''}</div>`).join('')
+        :'<p style="color:var(--good)">暂无错题记录 —— 去「今日自测」答几题试试。</p>');
+      window._mistakeClusters=r.clusters;
+    } else if(m==='闪卡记忆'){
+      out.innerHTML=`<h3>🃏 闪卡记忆（真 LLM 生成 · 点击卡片翻面）</h3>
+        <button onclick="aiFlash()">生成闪卡</button><div id="fcOut" style="margin-top:10px"></div>`;
+    } else if(m==='公式本'||m==='术语表'){
+      out.innerHTML=`<h3>${m}（真 LLM 整理）</h3>
+        <button onclick="aiGloss('${m==='公式本'?'formula':'glossary'}')">生成</button>
+        <div id="glOut" style="margin-top:10px;font-size:14px;line-height:1.9"></div>`;
+    } else if(m==='成就徽章'){
+      const r=await j('/api/student/badges?sid='+sid);
+      out.innerHTML=`<h3>🏅 成就徽章（基于真实学习数据）</h3>
+        <p>累计答题 <b>${r.n_answers}</b> · 最长连对 <b>${r.best_streak}</b> · 平均掌握 <b>${(r.avg*100).toFixed(0)}%</b> · 孪生战胜 <b>${r.twin_wins}</b> 局</p>
+        <div>${r.badges.map(b=>`<span style="display:inline-block;padding:6px 12px;margin:4px;background:linear-gradient(90deg,#5b7cff44,#8a5bff44);border-radius:20px">🏅 ${b.label}</span>`).join('')||'还没有徽章，先去答题！'}</div>`;
+    } else if(m==='情绪状态'){
+      out.innerHTML='<h3>😊 情绪观察员（ReAct 智能体）</h3><i>观察员正在分析答题时序…</i>';
+      const r=await j('/api/insight/mood?sid='+sid);
+      const sg=r.signal||{};
+      out.innerHTML=`<h3>😊 情绪观察员（ReAct · 答题行为推断心理状态）</h3>
+        ${reactTrace(r,'情绪观察员轨迹')}
+        <p>连对峰值 <b>${sg.best_streak||0}</b> · 连错峰值 <b>${sg.worst_slump||0}</b> · 走势 <b>${sg.trend||'-'}</b> · 情绪信号 <b style="font-size:18px;color:#ffb454">${sg.mood_signal||'-'}</b></p>`;
+    } else if(m==='认知负荷'){
+      out.innerHTML='<h3>🧠 负荷监测官（ReAct 智能体）</h3><i>监测官正在校准负荷…</i>';
+      const r=await j('/api/insight/load?sid='+sid);
+      const ld=r.load||{};
+      const lv=(ld.load||0)*100;
+      out.innerHTML=`<h3>🧠 负荷监测官（ReAct · 认知负荷校准 + 调节处方）</h3>
+        ${reactTrace(r,'负荷监测官轨迹')}
+        <p>负荷指数 <b style="font-size:20px;color:${lv>60?'#ff6b81':lv<30?'#2ee6a8':'#ffb454'}">${lv.toFixed(0)}%</b> ${lv>60?'（红区，建议减量+先复习）':lv<30?'（绿区，可以加难度）':'（黄区，保持节奏）'}</p>
+        <p>到期复习 <b>${ld.n_due||0}</b> 项 · 近期正确率 <b>${ld.recent_acc==null?'-':(ld.recent_acc*100).toFixed(0)+'%'}</b> · 校准偏差 <b>${(r.calibration||{}).bias||'-'}</b></p>`;
+    } else if(m==='成本监控'||m==='缓存监控'||m==='日志审计'){
+      const r=await j('/api/llm/status');
+      out.innerHTML=`<h3>💰 LLM 供应商监控（${r.chain.join(' → ')} 故障转移链）</h3>
+        <table style="width:100%;font-size:13px;border-collapse:collapse">
+        <tr style="color:#9fb0e8"><td>供应商</td><td>模型</td><td>成功</td><td>失败</td><td>当前</td></tr>
+        ${r.chain.map(n=>`<tr style="border-top:1px solid #ffffff14"><td><b>${n}</b></td><td>${r.models[n]}</td>
+          <td style="color:var(--good)">${r.stats[n].ok}</td><td style="color:${r.stats[n].fail?'var(--bad)':'#888'}">${r.stats[n].fail}</td>
+          <td>${r.last===n?'🟢 使用中':''}</td></tr>`).join('')}</table>
+        <p style="color:#8fa0d0;margin-top:8px">所有智能体（三端 ${'>'}20 个）共享此故障转移链：主供应商超时/失败自动切下一家。</p>`;
+    } else if(m==='今日自测'||m==='自动组卷'){
+      out.innerHTML=`<h3>${m}</h3><p>当前最薄弱考点 Top3：</p>`+
+        weak.slice(0,3).map((w,i)=>`<div style="padding:8px;margin:4px 0;background:#ffffff10;border-radius:6px">${i+1}. ${w.concept}（掌握 ${w.mastery}，提分收益 ${w.scoreup_gain}）</div>`).join('');
+    } else if(m==='学习路径'||m==='难度配比'||m==='学习计划'){
+      out.innerHTML=`<h3>${m}</h3><p>推荐学习顺序（先补根因）：</p>`+
+        weak.map((w,i)=>`<div style="padding:6px;margin:3px 0">${i+1}. ${w.concept}</div>`).join('');
+    } else if(m==='15天报告'||m==='数据看板'){
+      out.innerHTML=`<h3>${m}</h3>
+        <p>平均掌握度：<b style="font-size:28px;color:#46d4ff">${(s.avg*100).toFixed(0)}%</b></p>
+        <p>层级：${s.tier} | 连续打卡：${s.streak} 天</p>
+        <p>复习到期：${s.review_due.length} 项</p>`;
+    } else if(m==='教师看板'||m==='班级雷达'||m==='教学建议'){
+      out.innerHTML=`<h3>${m}</h3><p>班级薄弱考点：</p>`+
+        weak.slice(0,5).map((w,i)=>`<div style="padding:6px;margin:3px 0">${w.concept}（${w.mastery}）</div>`).join('');
+    } else if(m==='间隔复习'){
+      out.innerHTML=`<h3>${m}</h3><p>今日需复习：${s.review_due.length} 项</p>
+        <p style="color:#9fb0e8">基于艾宾浩斯间隔重复算法自动安排。</p>`;
+    } else if(m==='考点押题'||m==='AI深度诊断'||m==='根因追溯'){
+      out.innerHTML=`<h3>${m}</h3><p>高权重考点（考试重点）：</p>`+
+        c.filter(x=>x.weight>0.8).map(x=>`<div style="padding:6px;margin:3px 0">${x.name}（权重 ${x.weight}）</div>`).join('');
+    } else if(m==='上传课件'||m==='课堂笔记'||m==='章节大纲'){
+      out.innerHTML=`<h3>${m}</h3><p>当前课程包含 ${c.length} 个考点：</p>`+
+        c.map(x=>`<span style="display:inline-block;padding:4px 8px;margin:2px;background:#ffffff10;border-radius:4px">${x.name}</span>`).join('');
+    } else if(m==='模拟考试'){
+      out.innerHTML=`<h3>📝 在线考试系统（10 门课程 · AI 防作弊监考 · CAT 自适应）</h3>
+        <div id="examCourseList" style="margin:8px 0"><i>加载课程列表…</i></div>
+        <div id="examBox" style="margin-top:12px"></div>`;
+      const cr=await j('/api/exam/courses');
+      let html='<p style="color:#9fb0e8">选择考试课程：</p><div style="display:flex;flex-wrap:wrap;gap:6px">';
+      cr.courses.forEach(c=>{
+        html+=`<button onclick="examStart('${c.code}','fixed')" style="padding:6px 12px;background:rgba(108,140,255,.2);border:1px solid #6c8cff;border-radius:8px;cursor:pointer">${c.name}<span style="font-size:11px;color:#8fa0d0"> ${c.n_quiz}题</span></button>`;
+      });
+      html+='</div><p style="color:#8fa0d0;margin-top:8px;font-size:13px">💡 默认固定组卷（4基础/4进阶/2迁移）。按钮长按或在下方选 CAT 自适应模式：</p>';
+      html+='<div style="margin-top:4px"><label>考试模式：</label><select id="examModeSel"><option value="fixed">固定组卷（标准）</option><option value="cat">CAT自适应（按Elo配难度阶梯）</option></select></div>';
+      html+='<p style="color:#ff6b81;font-size:12px;margin-top:6px">🔒 AI防作弊监考官（ReAct）将全程取证：答题节奏/作答相似度/行为模式 → 自动裁决风险等级</p>';
+      document.getElementById('examCourseList').innerHTML=html;
+    } else if(m==='学生画像'){
+      out.innerHTML=`<h3>🧭 学生画像（ReAct 鉴定师 · 五维雷达 + 深度鉴定书）</h3>
+        <canvas id="rdCv" style="width:100%;height:300px;background:rgba(0,0,0,.25);border-radius:10px"></canvas>
+        <div id="rdTxt" style="margin-top:8px;font-size:14px"><i>鉴定师正在出具鉴定书…</i></div>`;
+      const r=await j('/api/insight/profile?sid='+sid);
+      const ks=Object.keys(r.dims||{}),vals=ks.map(k=>r.dims[k]);
+      const cvr=document.getElementById('rdCv'),W=cvr.clientWidth||760;cvr.width=W;cvr.height=300;
+      const g=cvr.getContext('2d'),cxr=W/2,cyr=150,R=100;
+      for(let ring=1;ring<=4;ring++){g.beginPath();
+        for(let i=0;i<=5;i++){const a=-Math.PI/2+i*2*Math.PI/5;const px=cxr+Math.cos(a)*R*ring/4,py=cyr+Math.sin(a)*R*ring/4;
+          i?g.lineTo(px,py):g.moveTo(px,py)}
+        g.strokeStyle='rgba(140,160,220,.18)';g.stroke()}
+      g.beginPath();
+      vals.forEach((v,i)=>{const a=-Math.PI/2+i*2*Math.PI/5;
+        const px=cxr+Math.cos(a)*R*v,py=cyr+Math.sin(a)*R*v;i?g.lineTo(px,py):g.moveTo(px,py)});
+      g.closePath();g.fillStyle='rgba(108,140,255,.30)';g.fill();g.strokeStyle='#6c8cff';g.lineWidth=2;g.stroke();
+      vals.forEach((v,i)=>{const a=-Math.PI/2+i*2*Math.PI/5;
+        g.beginPath();g.arc(cxr+Math.cos(a)*R*v,cyr+Math.sin(a)*R*v,3.5,0,7);g.fillStyle='#8fa5ff';g.fill();
+        g.fillStyle='#cdd7ff';g.font='12px sans-serif';g.textAlign='center';
+        g.fillText(ks[i],cxr+Math.cos(a)*(R+34),cyr+Math.sin(a)*(R+30));
+        g.fillStyle='#8fa0d0';g.fillText((v*100).toFixed(0)+'%',cxr+Math.cos(a)*(R+34),cyr+Math.sin(a)*(R+30)+14)});
+      document.getElementById('rdTxt').innerHTML=reactTrace(r,'画像鉴定师轨迹')+
+        `<p style="color:#8fa0d0">答题 ${r.n||0} 道 · 最长连对 ${r.best_streak||0} · 错题章节：${(r.error_chapters||[]).map(c=>c[0]+'('+c[1]+')').join('、')||'无'}</p>`;
+    } else if(m==='班级对比'){
+      out.innerHTML=`<h3>🏫 班级情报官（ReAct · 全班分布 + 共性弱点简报）</h3><div id="crBox"><i>情报官正在汇总班情…</i></div>`;
+      const r=await j('/api/insight/class?sid='+sid);
+      const cvc=document.createElement('canvas');cvc.id='crCv';cvc.style.cssText='width:100%;height:200px;background:rgba(0,0,0,.25);border-radius:10px;margin-top:8px';
+      document.getElementById('crBox').innerHTML=reactTrace(r,'班级情报官轨迹')+
+        `<p>我 <b style="color:#46d4ff">${(r.my*100).toFixed(0)}%</b> · 班均 <b>${(r.class_avg*100).toFixed(0)}%</b> · 第 <b>${r.rank}</b>/${r.n} 名（超过 ${r.pct}% 同学）</p>
+        <p style="color:#8fa0d0">梯队：${Object.entries(r.tiers||{}).map(([k,v])=>k+' '+v+'人').join(' · ')} | 共性弱点：${(r.common_weak||[]).map(w=>w[0]+'('+w[1]+'人)').join('、')||'无'}</p>`;
+      document.getElementById('crBox').appendChild(cvc);
+      const W=cvc.clientWidth||760;cvc.width=W;cvc.height=200;
+      const g=cvc.getContext('2d');
+      const bins=new Array(10).fill(0);(r.hist||[]).forEach(v=>bins[Math.min(9,Math.floor(v*10))]++);
+      const mx=Math.max(...bins,1),bw=W/10;
+      bins.forEach((n,i)=>{const h=n/mx*110;
+        g.fillStyle=(i===Math.min(9,Math.floor(r.my*10)))?'#46d4ff':'rgba(108,140,255,.35)';
+        g.fillRect(i*bw+4,170-h,bw-8,h);
+        g.fillStyle='#8fa0d0';g.font='11px sans-serif';g.textAlign='center';
+        g.fillText((i*10)+'%',i*bw+bw/2,186);if(n)g.fillText(n,i*bw+bw/2,158-h)});
+    } else if(m==='遗忘曲线'){
+      out.innerHTML=`<h3>📉 遗忘预测师（ReAct · 艾宾浩斯衰减拟合 + 预警）</h3>
+        <canvas id="ftCv" style="width:100%;height:240px;background:rgba(0,0,0,.25);border-radius:10px"></canvas>
+        <div id="ftTxt" style="margin-top:6px;font-size:13px;color:#8fa0d0"><i>预测师正在拟合遗忘曲线…</i></div>`;
+      const r=await j('/api/insight/forgetting?sid='+sid);
+      const cvf=document.getElementById('ftCv'),W=cvf.clientWidth||760;cvf.width=W;cvf.height=240;
+      const g=cvf.getContext('2d'),cx0=46,cy0=210,gw=W-70,gh=180;
+      g.strokeStyle='#ffffff20';g.strokeRect(cx0,cy0-gh,gw,gh);
+      g.strokeStyle='#ffb454';g.lineWidth=2;g.beginPath();
+      for(let t=0;t<=14;t+=0.25){const ret=Math.exp(-t/1.5)*0.8+0.2;
+        const px=cx0+t/14*gw,py=cy0-ret*gh;t?g.lineTo(px,py):g.moveTo(px,py)}
+      g.stroke();
+      g.fillStyle='#ffb454';g.font='12px sans-serif';g.fillText('理论保持率',cx0+8,cy0-gh+18);
+      (r.points||[]).forEach(p=>{const px=cx0+Math.min(p.days,14)/14*gw,py=cy0-p.retention*gh;
+        g.beginPath();g.arc(px,py,5,0,7);g.fillStyle=p.retention>=0.6?'#2ee6a8':p.retention>=0.35?'#ffb454':'#ff6b81';g.fill();
+        g.fillStyle='#8fa0d0';g.font='10px sans-serif';g.textAlign='center';g.fillText(p.name.slice(0,5),px,py-9)});
+      g.fillStyle='#cdd7ff';g.textAlign='left';g.font='11px sans-serif';
+      for(let d=0;d<=14;d+=7){g.fillText(d+'天',cx0+d/14*gw-6,cy0+16)}
+      document.getElementById('ftTxt').innerHTML=reactTrace(r,'遗忘预测师轨迹')+
+        `<p style="color:#ff6b81">高危遗忘：${(r.at_risk||[]).map(x=>x.name+'('+x.days+'天未碰,'+x.p+')').join('、')||'暂无高危考点'}</p>`;
+    } else if(m==='学习时长'){
+      const r=await j('/api/student/badges?sid='+sid);
+      out.innerHTML=`<h3>⏱️ 学习活动（真实答题流）</h3><p>累计答题 <b>${r.n_answers}</b> 道 · 连续打卡 <b>${s.streak}</b> 天</p>`;
+    } else if(m==='博士答辩'){
+      out.innerHTML=`<h3>🎓 博士答辩委员会（Multi-Agent Debate · 3 考官 2 轮辩论 + 主席裁决）</h3>
+        <p style="color:#8fa0d0;font-size:13px">学术前沿：多智能体辩论式答辩——严格派/宽容派/方法论派独立评分→交叉辩论→主持人加权裁决，消除单一模型偏见。</p>
+        <div class="row"><button onclick="thesisDefense()">召集答辩委员会</button></div>
+        <div id="defOut" style="margin-top:12px;font-size:14px;color:#cdd7ff">点击启动：系统取你最近一次考试的作答与参考答案，交由 3 位 AI 博士考官独立评分、2 轮交叉辩论、主持人裁决出最终等级。</div>`;
+    } else if(m==='生成式CAT'){
+      out.innerHTML=`<h3>🧬 生成式 CAT（Generative Assessment · LLM 实时出题 + 反幻觉 grounding + IRT 校准）</h3>
+        <p style="color:#8fa0d0;font-size:13px">学术前沿：传统 CAT 从题库抽题，博士级是 LLM 按你的薄弱模式实时生成全新题目，再过反幻觉校验与难度校准。</p>
+        <div class="row"><button onclick="genCat()">生成自适应新卷</button></div>
+        <div id="catOut" style="margin-top:12px;font-size:14px;color:#cdd7ff">点击启动：系统读你的薄弱考点与 Elo，LLM 实时生成 5 道全新题，逐题反幻觉校验 + IRT 难度校准。</div>`;
+    } else if(m==='因果推断'){
+      out.innerHTML=`<h3>🔮 因果推断（Judea Pearl do-calculus · 溯源真根因）</h3>
+        <p style="color:#8fa0d0;font-size:13px">学术前沿：不只看先修依赖（相关），而是用 do-calculus 做因果推断——学不会 A 的真根因可能是 B 没掌握，区分因果与伪相关。</p>
+        <div class="row"><select id="cauSel">${copts}</select><button onclick="causalDiag()">因果溯源</button></div>
+        <div id="cauOut" style="margin-top:12px;font-size:14px;color:#cdd7ff">选择主诉考点（或留空默认最薄弱），系统构建因果图→反向溯源根因→do-calculus 验证干预效果→落盘因果诊断书。</div>`;
+    } else if(m==='深度反思'){
+      out.innerHTML=`<h3>🔬 Reflexion 深度反思（科学方法循环 · 假设→插桩→复现→分析→修正→验证）</h3>
+        <p style="color:#8fa0d0;font-size:13px">学术前沿：Reflexion (Shinn 2023)——单次 ReAct 升级为多轮科学方法循环，失败后自然语言反思并存入记忆，下一轮带着记忆自我进化。</p>
+        <div class="row"><button onclick="reflexCt()">CT 深度反思诊断</button><button onclick="reflexForensic()">法医深度反思尸检</button></div>
+        <div id="rfxOut" style="margin-top:12px;font-size:14px;color:#cdd7ff">CT 模式：对最薄弱考点做多轮假设-扫描-反思。法医模式：对全量数据做多轮假设-取证-反思的自我进化尸检。</div>`;
+    } else if(m==='资源分配'){
+      out.innerHTML='<h3>🏫 教育资源公平分配（ReAct · 学情需求×师资供给→匹配优化→公平审计）</h3>'+
+        '<i>资源分配总监正在采集学情需求与师资供给…</i>';
+      const r=await j('/api/insight/resource-allocate?subject=all');
+      const d=r.demand||{},su=r.supply||{},f=r.fairness||{},p=r.plan||{};
+      const re=(p.reassign||[]).slice(0,8);
+      out.innerHTML=`<h3>🏫 教育资源公平分配（ReAct · 博士级多目标公平分配）</h3>
+        <p style="color:#8fa0d0;font-size:13px">解决现实痛点：师资少学生多、按成绩掐尖致马太效应、分配不透明。本智能体按学情需求做最优匹配，薄弱生优先倾斜，吉尼系数审计公平下限。</p>
+        ${reactTrace(r,'资源分配总监轨迹')}
+        <div class="row" style="gap:18px;flex-wrap:wrap">
+          <div><b style="font-size:20px;color:#2ee6a8">${d.n_students||0}</b> 学生</div>
+          <div><b style="font-size:20px;color:#ff6b81">${d.n_weak||0}</b> 薄弱(&lt;0.4)</div>
+          <div><b style="font-size:20px;color:#ffb454">${d.n_mid||0}</b> 巩固</div>
+          <div><b style="font-size:20px;color:#2ee6a8">${d.n_strong||0}</b> 精通</div>
+        </div>
+        <p style="color:#8fa0d0">师资供给：<b>${su.n_teachers||0}</b> 师 · 总容量 <b>${su.total_capacity||0}</b> · 超载 ${((su.overloaded||[]).length)} 人 · 空载 ${((su.underloaded||[]).length)} 人</p>
+        <p style="color:#8fa0d0">热门薄弱考点：${(d.hot_concepts||[]).map(h=>h.name+'('+h.gap_count+')').join('、')||'无'}</p>
+        <p style="color:#2ee6a8">匹配结果：重分配 <b>${(p.reassign||[]).length}</b> 人 · 薄弱生倾斜覆盖 <b>${(r.match||{}).weak_first_served||0}</b> · 学科对齐 <b>${(r.match||{}).subject_aligned||0}</b> 项</p>
+        <p style="color:${f.fairness_pass?'var(--good)':'var(--bad)'}">公平审计：吉尼系数 <b>${f.gini||0}</b> ${f.fairness_pass?'✓ 通过(&lt;0.35)':'✗ 不达标'} · 落空 ${f.n_underserved||0} 人</p>
+        <details style="margin-top:8px;font-size:13px"><summary>重分配方案（前${re.length}条）</summary>
+        ${re.map(a=>`<div style="margin:3px 0">📊 ${a.sid}：${a.from_tid}→${a.to_tid}（${a.reason}）</div>`).join('')||'无重分配'}</details>`;
+    } else if(m==='学习规划'){
+      out.innerHTML='<h3>🧭 个性化学习规划师（ReAct · 画像→路径→练习→复习日历）</h3>'+
+        '<i>规划师正在读取你的学习画像…</i>';
+      const r=await j('/api/insight/learning-plan?sid='+sid);
+      const pf=r.profile||{},pa=r.path||{},pr=r.practice||{},sc=r.schedule||{};
+      const path=(pa.path||[]).slice(0,8);
+      const cal=(sc.calendar||[]);
+      out.innerHTML=`<h3>🧭 个性化学习规划师（ReAct · 博士级诊断-规划-干预-巩固闭环）</h3>
+        <p style="color:#8fa0d0;font-size:13px">不止画画像——给你一份可执行的学习路径：先补什么、练什么、什么时候复习（艾宾浩斯防遗忘）。</p>
+        ${reactTrace(r,'学习规划师轨迹')}
+        <div class="row" style="gap:18px;flex-wrap:wrap">
+          <div><b style="font-size:20px;color:#ff6b81">${pf.n_weak||0}</b> 薄弱</div>
+          <div><b style="font-size:20px;color:#ffb454">${pf.n_mid||0}</b> 巩固</div>
+          <div><b style="font-size:20px;color:#2ee6a8">${pf.n_strong||0}</b> 精通</div>
+          <div><b style="font-size:20px;color:#8fa5ff">${((pf.accuracy||0)*100).toFixed(0)}%</b> 历史正确率</div>
+        </div>
+        <p style="color:#8fa0d0">学习风格：<b>${pf.style||'未知'}</b> · 答题 ${pf.n_answers||0} 道</p>
+        <p style="color:#2ee6a8">学习路径（${pa.n_steps||0}步 · 预估 ${pa.est_hours||0} 小时）：</p>
+        <div style="font-size:13px;line-height:2">${path.map(s=>`<span style="margin-right:10px">${s.is_breakpoint?'🔴':'⚪'}${s.step}.${s.name}${s.mastery!=null?'('+s.mastery+')':''}</span>`).join('→')}${path.length?'→ ...':''}</div>
+        <p style="color:#2ee6a8;margin-top:8px">针对性练习（${pr.n||0}题）：</p>
+        <div style="font-size:13px">${(pr.items||[]).map(q=>`<div style="margin:6px 0;padding:6px;background:rgba(0,0,0,.2);border-radius:6px"><b>${q.concept||''}</b>：${q.question||''}<br>选项：${(q.options||[]).join(' / ')}<br><span style="color:var(--good)">答案：${q.answer||''}</span> <span style="color:#8fa0d0">提示：${q.hint||''}</span></div>`).join('')||'无练习'}</div>
+        <p style="color:#2ee6a8;margin-top:8px">艾宾浩斯复习日历：</p>
+        <div style="font-size:13px;display:flex;gap:10px;flex-wrap:wrap">${cal.map(d=>`<div style="padding:5px 10px;background:rgba(46,230,168,.12);border-radius:6px">第${d.day}天：${(d.items||[]).join('、')}<br><span style="color:#8fa0d0">${d.goal||''}</span></div>`).join('')||'无日历'}</div>`;
+    } else {
+      out.innerHTML=`<h3>${m}</h3><p>当前 ${c.length} 个考点，平均掌握 ${(s.avg*100).toFixed(0)}%。</p>`;
+    }
+  }catch(e){
+    out.innerHTML='<h3>'+m+'</h3><p style="color:#ff6b81">加载失败：'+e.message+'</p>';
+  }
+}
+// ---------- 在线考试（多课程选科 + CAT自适应 + AI防作弊监考 + 摄像头取证） ----------
+window._examTimers={}; // 题号 -> 开始时间戳
+// ---------- 摄像头监考：真实抓帧 → 前端视觉统计 → 交由 LangChain 监考官 ReAct 裁决 ----------
+window._camStats={authorized:false,shots:0,absent:0,motion_high:0,leave_events:0,
+  brightness_sum:0,frames:[],leave_log:[],err:'',frame_log:[],events:[],
+  patrolSeq:0,
+  aud:{authorized:false,samples:0,voice_frames:0,loud_frames:0,rms_sum:0,err:''}};
+window._camPrev=null;window._camWasAbsent=false;window._camTimer=null;window._camStream=null;
+window._audCtx=null;window._audNode=null;window._audBuf=null;
+async function startExamCamera(){
+  const st=window._camStats,au=st.aud;
+  st.shots=0;st.absent=0;st.motion_high=0;st.leave_events=0;st.brightness_sum=0;
+  st.frames=[];st.leave_log=[];st.err='';st.authorized=false;st.frame_log=[];st.events=[];st.patrolSeq=0;
+  au.authorized=false;au.samples=0;au.voice_frames=0;au.loud_frames=0;au.rms_sum=0;au.err='';
+  window._camPrev=null;window._camWasAbsent=false;
+  clearInterval(window._camTimer);
+  const slot=document.getElementById('camBox');
+  // 授权挂起保护：8秒未响应视为授权超时（用户不点弹窗/系统挂起时不阻塞开考）
+  const gum=(c)=>Promise.race([navigator.mediaDevices.getUserMedia(c),
+    new Promise((_,rej)=>setTimeout(()=>rej(new DOMException('授权超时','TimeoutError')),8000))]);
+  try{  // 首选：摄像头+麦克风一路采集（关掉降噪/AGC，保留真实音量供取证）
+    window._camStream=await gum({video:{width:320,height:240},
+      audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    au.authorized=true;
+  }catch(e1){
+    au.err=(e1&&e1.name)||String(e1);
+    try{  // 降级：仅摄像头
+      window._camStream=await gum({video:{width:320,height:240}});
+    }catch(e2){
+      st.err=(e2&&e2.name)||String(e2);
+      if(slot)slot.innerHTML='<div style="font-size:12px;color:#ffb454;margin-top:6px">📹 摄像头未授权（'+st.err+'）——监考官将把【拒绝摄像头授权】计入风险取证 '+
+        '<button onclick="window._voiceOn=!window._voiceOn;this.textContent=window._voiceOn?\'🔊 监考语音开\':\'🔇 监考语音关\'" style="font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #ffb45455;background:rgba(255,180,84,.1);color:#ffb454;cursor:pointer">🔊 监考语音开</button></div>';
+      proctorSay('监考官已上线。未检测到摄像头授权，将计入风险取证。请正视屏幕，独立作答，考试期间请勿离开画面。');
+      return;
+    }
+  }
+  st.authorized=true;
+  if(slot)slot.innerHTML='<div style="display:flex;gap:10px;align-items:center;margin-top:8px">'+
+    '<video id="camVid" autoplay muted playsinline style="width:160px;height:120px;border-radius:8px;border:1px solid #46d4ff"></video>'+
+    '<div style="display:flex;flex-direction:column;gap:4px"><div id="camLive" style="font-size:12px;color:#2ee6a8">📹 摄像头监考中（每5秒抓帧分析）<br>抓帧 0 · 无人 0 · 离开 0 次<br>🎙️ 音频取证中 · 采样 0 · 人声 0 · 高音 0</div>'+
+    '<button onclick="window._voiceOn=!window._voiceOn;this.textContent=window._voiceOn?\'🔊 监考语音开\':\'🔇 监考语音关\'" style="font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #46d4ff55;background:rgba(70,212,255,.1);color:#46d4ff;cursor:pointer;width:fit-content">🔊 监考语音开</button></div></div>';
+  document.getElementById('camVid').srcObject=window._camStream;
+  // 麦克风 RMS 音量采样（Web Audio API AnalyserNode，与视觉抓帧同步）
+  try{
+    if(window._camStream.getAudioTracks&&window._camStream.getAudioTracks().length){
+      window._audCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(window._audCtx.state==='suspended'){  // Chrome 自动播放策略会挂起 AudioContext，必须显式唤醒
+        window._audCtx.resume().catch(()=>{});
+      }
+      const src=window._audCtx.createMediaStreamSource(window._camStream);
+      window._audNode=window._audCtx.createAnalyser();window._audNode.fftSize=512;
+      src.connect(window._audNode);
+      window._audBuf=new Float32Array(window._audNode.fftSize);
+    }else{au.err='no-audio-track';}
+  }catch(e3){au.err=(e3&&e3.name)||String(e3);}
+  window._camTimer=setInterval(sampleExamCamera,5000);
+  sampleExamCamera();
+  proctorSay('监考官已上线。请正视屏幕，独立作答，考试期间请勿离开画面。祝你取得好成绩。');
+}
+function sampleExamCamera(){
+  const v=document.getElementById('camVid'),st=window._camStats,au=st.aud;
+  if(!v||!v.videoWidth)return;
+  const c=document.createElement('canvas');c.width=64;c.height=48;
+  const g=c.getContext('2d');g.drawImage(v,0,0,64,48);
+  const d=g.getImageData(0,0,64,48).data;
+  let sum=0;const gray=new Float32Array(64*48);
+  for(let i=0;i<64*48;i++){gray[i]=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2];sum+=gray[i];}
+  const bright=sum/(64*48);
+  const absent=bright<18;               // 画面近黑=无人/遮挡镜头
+  let motion=0;
+  if(window._camPrev){let diff=0;for(let i=0;i<gray.length;i++)if(Math.abs(gray[i]-window._camPrev[i])>40)diff++;motion=diff/gray.length;}
+  const motionHigh=motion>0.25;         // 画面剧烈变化=疑似多人/换人
+  st.shots++;st.brightness_sum+=bright;
+  if(absent)st.absent++;
+  if(motionHigh)st.motion_high++;
+  const leaveNow=absent&&!window._camWasAbsent;
+  if(leaveNow){st.leave_events++;st.leave_log.push(st.shots);}
+  // 音频 RMS 采样：有人声 rms>0.02，突发高音 rms>0.15（喧哗/多人讨论）
+  // 仅在 AudioContext running 时采样（suspended 状态读到全 0，会污染统计造成"无声"误报）
+  let loudNow=false, audRunning=window._audCtx&&window._audCtx.state==='running';
+  if(au.authorized&&audRunning&&window._audNode&&window._audBuf){
+    window._audNode.getFloatTimeDomainData(window._audBuf);
+    let s2=0;for(let i=0;i<window._audBuf.length;i++)s2+=window._audBuf[i]*window._audBuf[i];
+    const rms=Math.sqrt(s2/window._audBuf.length);
+    au.samples++;au.rms_sum+=rms;
+    if(rms>0.02)au.voice_frames++;
+    if(rms>0.15){au.loud_frames++;loudNow=true;}
+  }
+  if(absent)proctorWarn('absent','监考提醒：检测到考生离开画面，请立即回到座位，保持人在镜头内。');
+  if(motionHigh)proctorWarn('motion','监考提醒：画面剧烈变化，请勿多人出现在镜头前。');
+  if(loudNow)proctorWarn('loud','监考提醒：检测到音量过高，请保持安静，独立作答。');
+  // 逐帧视觉特征采集（供后端 scan_frame_vision + patrol_timeline 取证，保留最近20帧）
+  const tSec=st.shots*5;
+  st.frame_log.push({t:tSec,bright:Math.round(bright),motion:Math.round(motion*100)/100,
+    absent:!!absent,motion_high:!!motionHigh,leave:!!leaveNow});
+  if(st.frame_log.length>20)st.frame_log.shift();
+  // 巡逻事件采集（异常发生即记录，供后端 patrol_timeline 时序关联分析）
+  if(leaveNow)st.events.push({t:tSec,source:'frame',type:'absent',desc:'画面无人/离席'});
+  if(motionHigh)st.events.push({t:tSec,source:'frame',type:'motion_high',desc:'画面剧变'});
+  if(loudNow)st.events.push({t:tSec,source:'audio',type:'loud',desc:'突发高音'});
+  if(st.events.length>30)st.events.splice(0,st.events.length-30);
+  // 考中实时 AI 巡逻：检测到异常时上报后端 LLM 做深度研判，拿精准话术替代模板警告
+  if((absent||motionHigh||loudNow)&&window._lastExamCourse)triggerPatrol(absent,motionHigh,loudNow,tSec);
+  // 关键帧存证：首帧/第10帧/离开瞬间帧（≤3张 160x120 缩略图）
+  if(st.frames.length<3&&(st.shots===1||st.shots===10||leaveNow)){
+    const c2=document.createElement('canvas');c2.width=160;c2.height=120;
+    c2.getContext('2d').drawImage(v,0,0,160,120);
+    st.frames.push(c2.toDataURL('image/jpeg',0.5));
+  }
+  window._camWasAbsent=absent;window._camPrev=gray;
+  const lv=document.getElementById('camLive');
+  if(lv)lv.innerHTML='📹 摄像头监考中（每5秒抓帧分析）<br>抓帧 '+st.shots+' · 无人 '+st.absent+' · 离开 '+st.leave_events+' 次'+(motionHigh?' · ⚠️画面剧变':'')+
+    '<br>🎙️ 音频取证中 · 采样 '+au.samples+' · 人声 '+au.voice_frames+' · 高音 '+au.loud_frames+(loudNow?' · ⚠️突发高音':'');
+}
+function stopExamCamera(){
+  clearInterval(window._camTimer);window._camTimer=null;
+  if(window._camStream){window._camStream.getTracks().forEach(t=>t.stop());window._camStream=null;}
+  if(window._audCtx){try{window._audCtx.close();}catch(e){}window._audCtx=null;window._audNode=null;window._audBuf=null;}
+  if(window.speechSynthesis){try{speechSynthesis.cancel();}catch(e){}}
+}
+// ---------- AI 监考官语音（Web Speech API TTS：开考播报+考中实时警告+交卷裁决播报） ----------
+window._voiceOn=true;window._voiceLast={};
+function proctorSay(text){
+  try{
+    if(window._voiceOn===false||!window.speechSynthesis)return;
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN';u.rate=1.05;
+    const vs=speechSynthesis.getVoices();
+    const v=vs.find(x=>/zh[-_]CN/i.test(x.lang))||vs.find(x=>/^zh/i.test(x.lang));
+    if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function proctorWarn(key,text){   // 同类警告 30 秒内只说一次，避免刷屏
+  const now=Date.now();
+  if(window._voiceLast[key]&&now-window._voiceLast[key]<30000)return;
+  window._voiceLast[key]=now;
+  proctorSay(text);
+}
+// 考中实时 AI 巡逻：异常发生时上报后端 LLM 深度研判，拿精准话术播报（15秒节流，比前端模板更准）
+async function triggerPatrol(absent,motionHigh,loudNow,tSec){
+  const st=window._camStats;
+  // 同类异常 15 秒内只巡逻一次（让后端比前端模板更敏锐又不刷屏）
+  const now=Date.now();
+  const kind=absent?'patrol_absent':motionHigh?'patrol_motion':'patrol_loud';
+  if(window._voiceLast[kind]&&now-window._voiceLast[kind]<15000)return;
+  window._voiceLast[kind]=now;
+  try{
+    const r=await j('/api/exam/patrol',{method:'POST',
+      body:JSON.stringify({sid,course:window._lastExamCourse,
+        frame_log:st.frame_log.slice(-12),events:st.events.slice(-15)})});
+    if(r&&r.warn&&r.text){
+      proctorSay('AI巡逻：'+r.text);  // 后端 LLM 研判后的精准话术
+      // 巡逻发现可视化（更新监控面板）
+      const lv=document.getElementById('camLive');
+      if(lv&&r.level)lv.innerHTML+='<br><span style="color:#ff6b81">🤖 AI巡逻研判：'+(r.level==='suspected'?'疑似作弊':r.level==='watch'?'需关注':'正常')+' · '+r.text+'</span>';
+    }
+  }catch(e){/* 巡逻失败静默，不影响考试 */}
+}
+function camReport(){
+  const st=window._camStats,au=st.aud;
+  const audio=au.authorized
+    ? {authorized:true,samples:au.samples,voice_frames:au.voice_frames,
+       loud_frames:au.loud_frames,avg_rms:au.samples?Math.round(au.rms_sum/au.samples*10000)/10000:0}
+    : {authorized:false,error:au.err||'未授权'};
+  if(!st.authorized)return {authorized:false,error:st.err||'未授权',audio:audio};
+  return {authorized:true,shots:st.shots,absent_frames:st.absent,
+          motion_high_frames:st.motion_high,leave_events:st.leave_events,
+          leave_log:st.leave_log,
+          avg_brightness:st.shots?Math.round(st.brightness_sum/st.shots*10)/10:0,
+          frame_log:st.frame_log,events:st.events,
+          frames:st.frames,audio:audio};
+}
+async function examStart(course,mode){
+  window._lastExamCourse=course;
+  const mSel=document.getElementById('examModeSel');
+  const realMode=mSel?mSel.value:mode;
+  const box=document.getElementById('examBox');
+  box.innerHTML='<i>⏳ 出题官按考试权重组卷中…</i>';
+  const r=await j(`/api/exam/start?sid=${sid}&course=${course}&mode=${realMode}`,{method:'POST'});
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  let left=r.deadline_min*60;
+  clearInterval(window._examTimer);
+  box.innerHTML=`<div style="padding:10px;background:rgba(255,180,84,.12);border-radius:10px;margin-bottom:10px">
+    <b>⏱️ 剩余时间：<span id="examClock">${r.deadline_min}:00</span></b>（到时请尽快交卷）
+    <span style="margin-left:12px;color:#9fb0e8">课程：${r.course} · 模式：${r.mode==='cat'?'CAT自适应':'固定组卷'} · 起始Elo：${r.elo_start||1200}</span>
+    <div id="camBox"></div></div>
+    ${r.items.map(it=>`<div style="padding:8px;margin:6px 0;background:#ffffff10;border-radius:6px" onfocusin="window._examTimers['${it.i}']=Date.now()">
+      <b>第 ${it.i+1} 题</b> <span style="font-size:11px;color:#8fa0d0">${it.tier==='foundation'?'基础':it.tier==='consolidation'?'进阶':'迁移'}</span><br>${it.q}<textarea id="exa${it.i}" rows="2" style="margin-top:6px" onfocus="window._examTimers['${it.i}']=Date.now()"></textarea></div>`).join('')}
+    <button onclick="examSubmit()">交卷</button>`;
+  window._examTimer=setInterval(()=>{
+    left--;const m=Math.floor(left/60),s2=left%60;
+    const el=document.getElementById('examClock');
+    if(el)el.textContent=m+':'+String(s2).padStart(2,'0');
+    if(left<=0){clearInterval(window._examTimer);examSubmit();}
+  },1000);
+  startExamCamera(); // 开启摄像头监考（真实抓帧取证）
+}
+async function examSubmit(){
+  clearInterval(window._examTimer);
+  stopExamCamera();
+  const box=document.getElementById('examBox');
+  const answers={},timing={};
+  document.querySelectorAll('textarea[id^="exa"]').forEach(t=>{
+    const i=t.id.slice(3);answers[i]=t.value;
+    const st=window._examTimers[i]||Date.now();
+    timing[i]=Math.round((Date.now()-st)/1000);
+  });
+  const t0=Date.now();
+  const cam=camReport();
+  box.innerHTML='<i>📝 LLM 阅卷 + AI监考官取证中（含摄像头+麦克风证据分析）…已等待 <b id="examElapsed">0</b> 秒（阅卷与监考官并行取证，通常 15~40 秒，请勿关闭页面）</i>';
+  const tick=setInterval(()=>{const el=document.getElementById('examElapsed');if(el)el.textContent=Math.round((Date.now()-t0)/1000);},1000);
+  let r;
+  try{
+    r=await j('/api/exam/submit',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sid,answers,timing,camera:cam,audio:cam.audio||{}})});
+  }catch(e){
+    clearInterval(tick);
+    box.innerHTML='<span style="color:#ff6b81">❌ 交卷请求失败：'+(e&&e.message?e.message:e)+'（服务器繁忙或网络异常，请稍后重试；成绩单可在"学生画像"查看历史记录）</span>';
+    return;
+  }
+  clearInterval(tick);
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  window._lastExamResults=r.results;
+  const pct=(r.score/r.n*100).toFixed(0);
+  const eloD=r.elo_delta||0;
+  const risk=r.proctor&&r.proctor.verdict?r.proctor.verdict.risk_level:'unknown';
+  const riskColor={'low':'#2ee6a8','medium':'#ffb454','high':'#ff6b81','unknown':'#8fa0d0'}[risk]||'#8fa0d0';
+  box.innerHTML=`<div style="padding:14px;background:${pct>=60?'rgba(46,230,168,.15)':'rgba(255,107,129,.15)'};border-radius:12px">
+    <b style="font-size:22px">成绩：${r.score}/${r.n}（${pct}分）</b> · 答对 ${r.n_correct||0} 题
+    <div style="margin-top:4px;color:#46d4ff">📊 Elo：${r.elo_start||1200} → ${r.elo_end||1200}（${eloD>=0?'+':''}${eloD}）</div>
+    <div style="margin-top:6px">🧑‍🏫 <b>讲评：</b>${r.review}</div></div>
+    <div style="margin-top:10px;padding:10px;background:rgba(255,107,129,.08);border-radius:8px">
+      🔒 <b>AI 防作弊监考裁决</b> <span style="color:${riskColor};font-weight:bold">${risk.toUpperCase()}</span>
+      ${r.proctor&&r.proctor.answer?`<br><span style="color:#cdd7ff;font-size:13px">${r.proctor.answer}</span>`:''}
+      ${(r.proctor&&r.proctor.verdict&&r.proctor.verdict.flags||[]).length?`<br><span style="color:#8fa0d0;font-size:12px">异常标记：${r.proctor.verdict.flags.join('、')}</span>`:''}
+      ${r.proctor&&r.proctor.camera?`<br><span style="color:#8fa0d0;font-size:12px">📹 摄像头取证：抓帧 ${r.proctor.camera.shots} · 无人 ${r.proctor.camera.absent_frames} · 离开 ${r.proctor.camera.leave_events} 次 · 剧变 ${r.proctor.camera.motion_high_frames} 帧${r.proctor.camera.frames_count?` · 关键帧存证 ${r.proctor.camera.frames_count} 张`:''}</span>`:''}
+      ${r.proctor&&r.proctor.audio?`<br><span style="color:#8fa0d0;font-size:12px">${r.proctor.audio.authorized?`🎙️ 语音取证：采样 ${r.proctor.audio.samples} 次 · 人声 ${r.proctor.audio.voice_frames} 帧 · 突发高音 ${r.proctor.audio.loud_frames} 帧 · 平均音量 ${r.proctor.audio.avg_rms}`:'🎙️ 语音取证：麦克风未授权（'+(r.proctor.audio.error||'未授权')+'）'}</span>`:''}
+      ${(window._camStats.frames||[]).length?`<br>${window._camStats.frames.map(f=>`<img src="${f}" style="width:106px;border-radius:6px;margin:4px 4px 0 0;border:1px solid #ff6b8155">`).join('')}<span style="font-size:11px;color:#8fa0d0"> ← 摄像头关键帧存证</span>`:''}
+      ${r.proctor&&r.proctor.patrol&&r.proctor.patrol.suspicious_sequences&&r.proctor.patrol.suspicious_sequences.length?`<br><span style="color:#ff6b81;font-size:12px">🤖 AI巡逻发现 ${r.proctor.patrol.n_findings||0} 条异常时序关联（裁决：${({suspected_cheating:'疑似作弊',watch:'需关注',clear:'正常',no_events:'无事件'})[r.proctor.patrol.patrol_verdict]||r.proctor.patrol.patrol_verdict}）</span><br><span style="color:#8fa0d0;font-size:11px">${r.proctor.patrol.suspicious_sequences.map(s=>'· '+s).join('<br>')}</span>`:''}
+      ${r.proctor&&r.proctor.patrol&&r.proctor.patrol.patrol_findings&&r.proctor.patrol.patrol_findings.length?`<br><span style="color:#8fa0d0;font-size:11px">巡逻模式：${r.proctor.patrol.patrol_findings.map(f=>f.pattern).join('；')}</span>`:''}
+      ${r.proctor&&r.proctor.steps?reactTrace(r.proctor,'监考官取证轨迹（含逐帧视觉+AI巡逻）'):''}</div>
+    ${r.chapter_dist&&r.chapter_dist.length?`<div style="margin-top:10px"><b>📊 章节得分分布</b>${r.chapter_dist.map(c=>`<div style="margin:2px 0;font-size:13px;color:#cdd7ff">${c.chapter}：${(c.avg*100).toFixed(0)}%（${c.n}题）</div>`).join('')}</div>`:''}
+    <canvas id="exHist" style="width:100%;height:150px;background:rgba(0,0,0,.25);border-radius:10px;margin-top:10px"></canvas>
+    <button onclick="examPractice()" style="margin-top:10px">🎯 失分变式再练（考试→练习闭环）</button>
+    <div id="exPrac"></div>
+    ${r.results.map((x,i)=>`<div style="padding:8px;margin:6px 0;background:${x.correct?'rgba(46,230,168,.08)':'rgba(255,107,129,.08)'};border-radius:6px;font-size:13px">
+      <b>第${i+1}题 ${x.score}/${1}</b> ${x.brief?`· ${x.brief}`:''}<br>
+      <span style="color:#cdd7ff">题目：${x.q}</span><br>
+      你的作答：${x.ans||'<i>未作答</i>'}<br>
+      <span style="color:#8fa0d0">参考：${x.ref}</span></div>`).join('')}`;
+  // 历次成绩折线
+  const hx=document.getElementById('exHist'),W2=hx.clientWidth||760;hx.width=W2;hx.height=150;
+  const g2=hx.getContext('2d'),h=r.history;
+  if(h.length>1){
+    const mx2=r.n||10;g2.strokeStyle='#46d4ff';g2.lineWidth=2;g2.beginPath();
+    h.forEach((p,i)=>{const px=30+i/(h.length-1)*(W2-60),py=130-(p.score/mx2)*100;
+      i?g2.lineTo(px,py):g2.moveTo(px,py)});
+    g2.stroke();
+    h.forEach((p,i)=>{const px=30+i/(h.length-1)*(W2-60),py=130-(p.score/mx2)*100;
+      g2.beginPath();g2.arc(px,py,3.5,0,7);g2.fillStyle='#46d4ff';g2.fill();
+      g2.fillStyle='#8fa0d0';g2.font='11px sans-serif';g2.textAlign='center';
+      g2.fillText(p.score+'/'+p.n,px,py-8)});
+    g2.textAlign='left';g2.fillText('历次成绩',8,16);
+  }else{g2.fillStyle='#8fa0d0';g2.font='12px sans-serif';g2.fillText('这是你的第一场考试，再考一场就能看到成绩曲线。',12,80);}
+  // 监考官语音播报裁决
+  const riskText={low:'低风险，正常归档',medium:'中风险，建议抽查复核',high:'高风险，需人工复核',unknown:'未知'}[risk]||'未知';
+  proctorSay('考试结束。监考裁决：'+riskText+'。');
+}
+async function examPractice(){
+  const box=document.getElementById('exPrac');
+  box.innerHTML='<i>🎯 抽取失分考点的变式题…</i>';
+  const r=await j('/api/exam/practice?sid='+sid);
+  if(!r.items.length){box.innerHTML='<p>🎉 最近没有失分考点，无需补练。</p>';return;}
+  box.innerHTML=`<p style="color:#ffb454">针对失分考点 ${r.wrong_cids.join('、')} 的变式题：</p>`+
+    r.items.map((it,i)=>`<div style="padding:8px;margin:6px 0;background:#ffffff10;border-radius:6px;font-size:13px">
+      <b>变式 ${i+1}</b>：${it.q}
+      <textarea id="vp${i}" rows="2" style="margin-top:6px"></textarea>
+      <div style="margin-top:6px"><button onclick="examPracGo(${i},'${it.qid}')">提交</button>
+      <span id="vpr${i}" style="margin-left:8px"></span></div></div>`).join('');
+}
+async function examPracGo(i,qid){
+  const el=document.getElementById('vpr'+i);
+  el.innerHTML='<i>判卷中…</i>';
+  const r=await j('/api/review/answer',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sid,qid,answer:document.getElementById('vp'+i).value})});
+  el.innerHTML=r.correct?'<b style="color:#2ee6a8">✅ 通过，掌握度已更新</b>':`<b style="color:#ff6b81">✗ 未通过</b> ${r.comment||''}`;
+}
+// ---------- 学生端 AI 学习功能（统一走 /api/study/ai，全部真 LLM） ----------
+async function studyAI(action,concept,extra){
+  return j('/api/study/ai',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action,sid,concept:concept||'',message:(extra&&extra.message)||'',turn:(extra&&extra.turn)||0})});
+}
+async function aiTutor(){
+  const box=document.getElementById('aiOut');box.innerHTML='<i>AI 讲师备课中…</i>';
+  const r=await studyAI('tutor',document.getElementById('aiC').value);
+  box.innerHTML='🎓 <b>'+document.getElementById('aiC').value+'</b><br>'+r.text;
+}
+async function aiMnemonic(){
+  const box=document.getElementById('aiOut');box.innerHTML='<i>编口诀中…</i>';
+  const r=await studyAI('mnemonic',document.getElementById('aiC').value);
+  box.innerHTML='🧩 <b>记忆口诀</b><br>'+r.text;
+}
+// ---------- 博士级创新：四大学术前沿面板 ----------
+async function thesisDefense(){
+  const box=document.getElementById('defOut');
+  const rs=window._lastExamResults;
+  if(!rs||!rs.length){box.innerHTML='<span style="color:#ff6b81">请先完成一次模拟考试，答辩委员会需要你的作答记录。</span>';return;}
+  const qa=rs.map(x=>({q:x.q,ans:x.ans||'',ref:x.ref}));
+  box.innerHTML='<i>🎓 三派考官独立评分 → 2 轮交叉辩论 → 主持人裁决中…（约 1 分钟）</i>';
+  const r=await j('/api/exam/defense',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sid,course:window._lastExamCourse||'os',qa_set:qa})});
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  const v=r.verdict||{};
+  const gradeColor={'A':'#2ee6a8','B':'#46d4ff','C':'#ffb454','D':'#ff6b81'}[v.grade]||'#8fa0d0';
+  const roundsHtml=(r.rounds||[]).map((rd,i)=>`<div style="margin:4px 0;padding:6px;background:rgba(255,255,255,.06);border-radius:6px;font-size:12px">Round ${rd.round||i}：${(rd.examiners||[]).map(e=>e.role_name+' '+e.score).join(' ｜ ')||'-'}</div>`).join('');
+  box.innerHTML=`<div style="padding:14px;background:rgba(108,140,255,.1);border-radius:12px">
+    <b style="font-size:20px;color:${gradeColor}">最终等级：${v.grade||'?'}</b> · 综合分 ${v.final_score!=null?(v.final_score*100).toFixed(0):'?'} 分
+    <div style="margin-top:4px;color:#8fa0d0">分歧度：${v.divergence!=null?(v.divergence*100).toFixed(0)+'%':''} · ${v.consensus?'✅ 达成共识':'⚠️ 存在争议'}</div>
+    <div style="margin-top:6px">⚖️ <b>主席裁决：</b>${v.verdict||''}</div></div>
+    ${roundsHtml}
+    ${reactTrace(r,'答辩委员会轨迹')}`;
+}
+async function genCat(){
+  const box=document.getElementById('catOut');
+  box.innerHTML='<i>🧬 LLM 实时生成新题 → 反幻觉校验 → IRT 校准中…（约 30 秒）</i>';
+  const r=await j('/api/exam/generative?sid='+sid);
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  const items=r.items||[];
+  const nGrounded=items.filter(x=>x.grounded).length;
+  box.innerHTML=`<div style="padding:10px;background:rgba(46,230,168,.1);border-radius:10px">
+    <b>生成 ${items.length} 道全新题</b> · 通过反幻觉校验 <b style="color:#2ee6a8">${nGrounded}</b> 道 · 学生 Elo ${r.student_elo||'?'}</div>
+    ${items.map((it,i)=>`<div style="padding:8px;margin:6px 0;background:#ffffff10;border-radius:6px;font-size:13px">
+      <b>题 ${i+1}</b> ${it.grounded?'<span style="color:#2ee6a8">✅已校验</span>':'<span style="color:#ff6b81">⚠已修正</span>'} · 难度 ${(it.difficulty*100).toFixed(0)}% · 期望答对率 ${(it.expected_p*100).toFixed(0)}%
+      <br><span style="color:#cdd7ff">${it.question}</span>
+      <br><span style="color:#8fa0d0">参考：${it.reference_answer}</span>
+      <br><span style="font-size:11px;color:#6c8cff">${it.tested_skill||''} · Bloom:${it.bloom_level||''}</span></div>`).join('')}
+    ${reactTrace(r,'生成式CAT轨迹')}`;
+}
+async function causalDiag(){
+  const box=document.getElementById('cauOut');
+  const sel=document.getElementById('cauSel');
+  const target=sel?sel.value:'';
+  box.innerHTML='<i>🔮 构建因果图 → do-calculus 溯源真根因中…（约 30 秒）</i>';
+  const url='/api/diagnosis/causal?sid='+sid+(target?'&cid='+encodeURIComponent(target):'');
+  const r=await j(url);
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  const rc=r.root_cause||{};
+  const cg=r.causal_graph||{};
+  box.innerHTML=`<div style="padding:12px;background:rgba(108,140,255,.1);border-radius:10px">
+    <b>🔮 因果图</b>：${cg.n_nodes||0} 节点 / ${cg.n_edges||0} 因果边
+    ${cg.spurious_correlations&&cg.spurious_correlations.length?'<br><span style="color:#ff6b81">⚠ 伪相关(疑似死记硬背)：'+cg.spurious_correlations.map(x=>x.note).join('；')+'</span>':''}</div>
+    <div style="padding:10px;margin-top:8px;background:rgba(255,180,84,.1);border-radius:8px">
+    <b>🎯 真根因</b>：${rc.name||'未定位'}（掌握度 ${rc.mastery!=null?rc.mastery:'?'}）${rc.cause_type?' · 类型：'+rc.cause_type:''}
+    <br><span style="color:#8fa0d0">证据链：${(rc.evidence_chain||[]).map(x=>x.node+'('+x.strength+')').join(' → ')||'无'}</span></div>
+    ${reactTrace(r,'因果推断轨迹')}`;
+}
+async function reflexCt(){
+  const box=document.getElementById('rfxOut');
+  box.innerHTML='<i>🔬 Reflexion 多轮科学方法循环（CT）中…（约 1 分钟，多轮反思）</i>';
+  const r=await j('/api/diagnosis/reflexion?sid='+sid);
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  const mem=r.reflection_memory||[];
+  box.innerHTML=`<div style="padding:10px;background:rgba(108,140,255,.1);border-radius:10px">
+    <b>🔬 经历 ${r.n_rounds||1} 轮科学方法循环</b> · 模式：Reflexion 自我进化
+    <br><span style="color:#8fa0d0">目标考点：${r.target||'最薄弱'}</span></div>
+    ${mem.map(m=>`<div style="padding:6px;margin:4px 0;background:rgba(255,107,129,.08);border-radius:6px;font-size:12px">Round${(m.round||0)+1} 反思：${(m.reflection&&m.reflection.reflection)||''}<br><span style="color:#6c8cff">修正假设：${(m.reflection&&m.reflection.revised_hypothesis)||''}</span></div>`).join('')}
+    ${reactTrace(r,'Reflexion轨迹')}`;
+}
+async function reflexForensic(){
+  const box=document.getElementById('rfxOut');
+  box.innerHTML='<i>🔬 Reflexion 多轮自我进化尸检中…（约 1 分钟）</i>';
+  const r=await j('/api/diagnosis/forensic/reflexion?sid='+sid);
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  const mem=r.reflection_memory||[];
+  box.innerHTML=`<div style="padding:10px;background:rgba(108,140,255,.1);border-radius:10px">
+    <b>🔬 经历 ${r.n_rounds||1} 轮自我进化尸检</b> · 模式：Reflexion</div>
+    ${mem.map(m=>`<div style="padding:6px;margin:4px 0;background:rgba(255,107,129,.08);border-radius:6px;font-size:12px">Round${(m.round||0)+1} 反思：${(m.reflection&&m.reflection.reflection)||''}<br><span style="color:#6c8cff">修正假设：${(m.reflection&&m.reflection.revised_hypothesis)||''}</span></div>`).join('')}
+    ${reactTrace(r,'Reflexion法医轨迹')}`;
+}
+let fuTurn=0,fuConcept='';
+async function fuStart(){
+  fuTurn=0;fuConcept=document.getElementById('fuC').value;
+  document.getElementById('fuLog').innerHTML='<i>AI 正在设计第一个追问…</i>';
+  document.getElementById('fuIn').style.display='flex';
+  const r=await studyAI('followup',fuConcept,{});
+  fuTurn=1;
+  document.getElementById('fuLog').innerHTML=`<div style="background:rgba(108,140,255,.15);padding:8px 12px;border-radius:10px;align-self:flex-start">🤖 ${r.text}</div>`;
+}
+async function fuNext(){
+  const t=document.getElementById('fuMsg').value.trim();if(!t)return;
+  const log=document.getElementById('fuLog');
+  log.innerHTML+=`<div style="background:rgba(46,230,168,.15);padding:8px 12px;border-radius:10px;align-self:flex-end">🙋 ${t}</div>`;
+  document.getElementById('fuMsg').value='';
+  log.innerHTML+='<div id="fuWait" style="color:#8fa0d0"><i>AI 思考中…</i></div>';
+  const r=await studyAI('followup',fuConcept,{message:t,turn:fuTurn});
+  fuTurn++;
+  const w=document.getElementById('fuWait');if(w)w.remove();
+  log.innerHTML+=`<div style="background:rgba(108,140,255,.15);padding:8px 12px;border-radius:10px;align-self:flex-start">🤖 ${r.text}</div>`;
+  log.scrollTop=log.scrollHeight;
+}
+async function aiSimilar(){
+  const box=document.getElementById('siOut');box.innerHTML='<i>变式出题中…</i>';
+  const r=await studyAI('similar',document.getElementById('siC').value);
+  box.innerHTML=(r.items||[]).map((x,i)=>`<div style="padding:10px;margin:6px 0;background:#ffffff10;border-radius:8px">
+    <b>${i+1}. ${x.q}</b><br><small style="color:#8fa0d0">参考答案（点击展开）：</small>
+    <span style="color:#cdd7ff;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'inline':'none'">👁</span>
+    <span style="display:none">${x.a}</span></div>`).join('')||'生成失败，请重试';
+}
+async function aiFlash(){
+  const box=document.getElementById('fcOut');box.innerHTML='<i>制卡中…</i>';
+  const r=await studyAI('flashcards','');
+  window._fcs=r.items||[];
+  box.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+    (window._fcs).map((x,i)=>`<div id="fc${i}" style="padding:12px;background:#ffffff10;border-radius:10px;cursor:pointer;min-height:80px" onclick="fcFlip(${i})">
+      <div class="fq" style="font-size:13px">🃏 ${x.front}</div>
+      <div class="fa" style="display:none;color:#2ee6a8;font-size:13px">✅ ${x.back}</div>
+      <small style="color:#7c8bb8">点击翻面</small></div>`).join('')+'</div>';
+}
+function fcFlip(i){
+  const el=document.getElementById('fc'+i);
+  const q=el.querySelector('.fq'),a=el.querySelector('.fa');
+  const showA=a.style.display==='none';
+  a.style.display=showA?'block':'none';q.style.display=showA?'none':'block';
+}
+async function aiGloss(kind){
+  const box=document.getElementById('glOut');box.innerHTML='<i>整理中…（全考点，约 10 秒）</i>';
+  const r=await studyAI(kind,'');
+  box.innerHTML=(kind==='formula'
+    ?(r.items||[]).map(x=>`<div style="padding:8px;margin:4px 0;background:#ffffff10;border-radius:6px"><b>${x.name}</b><br><code style="color:#46d4ff">${x.formula}</code><br><small style="color:#8fa0d0">${x.note}</small></div>`).join('')
+    :(r.items||[]).map(x=>`<div style="padding:6px;margin:3px 0"><b>${x.term}</b> — ${x.explain}</div>`).join(''))||'生成失败，请重试';
+}
+async function interrogate(i){
+  const c=window._mistakeClusters[i],box=document.getElementById('itg'+i);
+  box.innerHTML='<i>审讯官正在还原你的决策链…（约 8 秒）</i>';
+  const r=await studyAI('interrogate',c.concept,c.last_q+'||'+(c.last_ref||''));
+  box.innerHTML='🔍 <b>元认知审讯报告</b><br>'+String(r.text||'').split('\n').filter(Boolean).map(x=>'· '+x.replace(/^[①②③④]\s*/,'')).join('<br>');
+}
+async function buddyMatch(){  const box=document.getElementById('bdOut');
+  box.innerHTML='<i>正在扫描全班掌握度向量并匹配互补搭子…（约 10 秒）</i>';
+  const r=await j('/api/study/buddy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid})});
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  window._bd=r;
+  box.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="padding:10px;background:#ffffff10;border-radius:10px"><b>🙋 我</b><br>${r.me.name}（${r.me.tier}）</div>
+      <div style="padding:10px;background:rgba(108,140,255,.18);border-radius:10px"><b>👥 搭子：${r.buddy.name}</b>（${r.buddy.tier}）<br>
+      <small style="color:#8fa0d0">画像相似度 ${r.buddy.sim} · 互补考点 ${r.buddy.comp} 个</small></div>
+    </div>
+    <div style="padding:8px 10px;background:rgba(255,180,84,.12);border-radius:10px;margin-bottom:8px">${r.relation_txt}</div>
+    <div style="padding:8px 10px;background:rgba(46,230,168,.1);border-radius:10px;margin-bottom:10px">🤝 ${r.narrative}${r.both_weak.length?`<br>🎯 共同薄弱：${r.both_weak.join('、')}`:''}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <button onclick="bossFight('')">⚔️ 组队副本<br><small style="font-weight:400">讨伐知识Boss</small></button>
+      <button onclick="ladderStart()">🏆 天梯赛<br><small style="font-weight:400">3局对战+积分榜</small></button>
+      <button onclick="tableOpen()">🍚 学习圆桌<br><small style="font-weight:400">3人群聊+议题</small></button>
+    </div><div id="bdPlay" style="margin-top:12px"></div>`;
+}
+async function ladderStart(){
+  const box=document.getElementById('bdPlay');
+  box.innerHTML='<i>🏆 出题官入场…（约 8 秒）</i>';
+  const r=await j('/api/study/ladder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,action:'start'})});
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  window._lad={score:r.score,buddy_name:r.buddy_name};
+  box.innerHTML=`<div style="padding:10px;background:rgba(108,140,255,.12);border-radius:10px;margin-bottom:8px">
+    <b>🏆 天梯赛 第 ${r.round}/${r.total} 局</b> · 对手：${r.buddy_name} · 当前比分 我 ${r.score.me} : ${r.score.buddy} ${r.buddy_name}</div>
+    <div style="padding:10px;background:#ffffff10;border-radius:10px">Q：${r.question}</div>
+    <textarea id="ladAns" rows="2" style="margin-top:8px"></textarea>
+    <div class="row" style="margin-top:6px"><button onclick="ladderPlay()">提交作答</button>
+    <button class="ghost" onclick="ladderBoard()">查看积分榜</button></div><div id="ladMid" style="margin-top:8px;font-size:13px;line-height:1.8"></div><div id="ladBoard"></div>`;
+}
+async function ladderPlay(){
+  const ans=ladAnsVal();
+  if(!ans.trim()){alert('先写下你的作答');return}
+  const mid=document.getElementById('ladMid');mid.innerHTML='<i>搭子作答中 · 裁判评分中…</i>';
+  const r=await j('/api/study/ladder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,action:'play',answer:ans})});
+  if(r.detail){mid.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  window._lad.score=r.score;
+  mid.innerHTML=`<div style="padding:8px;background:#ffffff10;border-radius:8px">本局 我 <b>${r.my_score}</b> : <b>${r.buddy_score}</b> ${r.buddy_name}（其作答：${r.buddy_answer}）<br><small style="color:#8fa0d0">裁判：${r.comment}</small><br>总比分 我 <b>${r.score.me}</b> : <b>${r.score.buddy}</b> ${r.buddy_name}</div>`+
+    (r.final?`<div style="padding:12px;background:${r.outcome==='w'?'rgba(46,230,168,.15)':'rgba(255,107,129,.15)'};border-radius:10px;margin-top:8px"><b>${r.verdict}</b>（战绩已计入积分榜）<br><button class="ghost" style="margin-top:6px" onclick="ladderBoard()">看积分榜 →</button> <button class="ghost" onclick="ladderStart()">再战一场</button></div>`
+    :`<div style="margin-top:8px">▶️ 第 ${r.round}/${r.total} 局：${r.question}<br><textarea id="ladAns2" rows="2" style="margin-top:6px"></textarea><br><button style="margin-top:6px" onclick="ladderPlay()">提交作答</button></div>`);
+}
+function ladAnsVal(){
+  const el=document.getElementById('ladAns2')||document.getElementById('ladAns');
+  if(el)el.id='ladAns2';
+  return document.getElementById('ladAns2').value;
+}
+async function ladderBoard(){
+  const r=await j('/api/study/ladder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,action:'board'})});
+  document.getElementById('ladBoard').innerHTML=`<div style="padding:10px;background:rgba(255,180,84,.1);border-radius:10px;margin-top:8px">
+    <b>🏅 全班天梯积分榜</b>${r.my_rank?`（你第 <b>${r.my_rank}</b> 名）`:''}<br>`+
+    (r.board.length?r.board.map((x,i)=>`${i+1}. ${x.name} — ${x.pts}分（${x.w}胜 ${x.d}平 ${x.l}负）`).join('<br>'):'虚位以待——还没有人上过榜')+'</div>';
+}
+async function tableOpen(){
+  const box=document.getElementById('bdPlay');
+  box.innerHTML='<i>🍚 正在开桌：随机拉人入席、分配性格、生成今日议题…（约 10 秒）</i>';
+  const r=await j('/api/study/buddy/roundtable',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,action:'open'})});
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  box.innerHTML=`
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${r.members.map(m=>`<span class="pill" style="font-size:11px">${m.sid===sid?'🙋我':('👥'+m.name)} · ${m.persona}</span>`).join('')}</div>
+    <div style="padding:10px;background:linear-gradient(90deg,rgba(108,140,255,.2),rgba(176,108,255,.12));border-radius:10px;margin-bottom:8px">📢 <b>今日议题：</b>${r.topic}</div>
+    <div id="tbMsgs" style="max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:4px"></div>
+    <div id="tbAna"></div>
+    <div class="row" style="margin-top:8px"><input id="tbIn" style="flex:1" placeholder="抛出你的观点，看他们怎么接…" onkeydown="if(event.key==='Enter')tableSend()">
+    <button onclick="tableSend()">发言</button><button class="ghost" onclick="tableAna()">🔬 深度分析</button><button class="ghost" onclick="tableReopen()">换桌</button></div>`;
+}
+function tbMsg(name,text,isMe){
+  return `<div style="align-self:${isMe?'flex-end':'flex-start'};max-width:88%;padding:8px 11px;border-radius:11px;font-size:13px;${isMe?'background:#5b7cff33':'background:#ffffff14'}">${isMe?'🙋我':'👥'+name}：${text}</div>`;
+}
+async function tableSend(){
+  const inp=document.getElementById('tbIn'),t=inp.value.trim();
+  if(!t)return;inp.value='';
+  const box=document.getElementById('tbMsgs');
+  box.insertAdjacentHTML('beforeend',tbMsg('',t,true));
+  box.insertAdjacentHTML('beforeend','<div id="tbTyping" style="align-self:flex-start;color:#7c8bb8;font-size:12px"><i>圆桌讨论中…</i></div>');
+  box.scrollTop=box.scrollHeight;
+  const r=await j('/api/study/buddy/roundtable',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,action:'say',message:t})});
+  const ty=document.getElementById('tbTyping');if(ty)ty.remove();
+  (r.replies||[]).forEach(rp=>{
+    box.insertAdjacentHTML('beforeend',`<div style="align-self:flex-start;max-width:88%;padding:8px 11px;border-radius:11px;font-size:13px;background:#ffffff14"><small style="color:#8fa0d0">${rp.name} · ${rp.persona}</small><br>👥${rp.name}：${rp.text}</div>`);
+  });
+  box.scrollTop=box.scrollHeight;
+}
+async function tableReopen(){
+  await j('/api/study/buddy/roundtable',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,action:'reset'})});
+  tableOpen();
+}
+async function tableAna(){
+  const box=document.getElementById('tbAna');
+  box.innerHTML='<i>🔬 分析师通读全量讨论与三人画像中…（约 15 秒）</i>';
+  const r=await j('/api/study/buddy/roundtable',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,action:'analyze'})});
+  if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+  const a=r.analysis;
+  box.innerHTML=`<div style="margin-top:12px;border:1px solid rgba(108,140,255,.35);border-radius:12px;padding:12px;background:rgba(108,140,255,.06)">
+    <b>🔬 圆桌深度分析</b>
+    ${a.consensus&&a.consensus.length?`<div style="margin-top:8px"><b style="color:#2ee6a8">🤝 共识</b><div style="font-size:13px;line-height:1.7">${a.consensus.map(x=>'· '+x).join('<br>')}</div></div>`:''}
+    ${a.disputes&&a.disputes.length?`<div style="margin-top:8px"><b style="color:#ffb454">⚔️ 分歧</b><div style="font-size:13px;line-height:1.7">${a.disputes.map(d=>`· <b>${d.who}</b>主张「${d.point}」 ↔ ${d.vs}`).join('<br>')}</div></div>`:''}
+    ${a.blind_spots&&a.blind_spots.length?`<div style="margin-top:8px"><b style="color:#ff6b81">🕳️ 暴露的盲区</b><div style="font-size:13px;line-height:1.7">${a.blind_spots.map(b=>`· <b>${b.who}</b>：${b.gap}`).join('<br>')}</div></div>`:''}
+    <div style="margin-top:8px;padding:8px;background:rgba(176,108,255,.12);border-radius:9px;font-size:13px"><b>🧭 下一步：</b>${a.growth||''}</div>
+  </div>`;
+}
+async function bossFight(myAnswer){
+  const box=document.getElementById('bdPlay');
+  if(!myAnswer){
+    box.innerHTML='<i>🔎 潜入共同薄弱考点，唤醒 Boss…（约 12 秒）</i>';
+    const r=await j('/api/study/buddy/battle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,answer:''})});
+    if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+    window._boss=r;
+    box.innerHTML=`<div style="padding:14px;background:linear-gradient(135deg,rgba(255,107,129,.2),rgba(255,180,84,.12));border-radius:12px;margin-bottom:10px">
+      <div style="font-size:20px;font-weight:800">👹 知识 Boss · ${r.boss_c}</div>
+      <div style="color:#ffb454;font-size:13px;margin:4px 0">"${r.taunt}" —— ${r.boss_c} 守门员</div></div>
+      <div style="padding:10px;background:#ffffff10;border-radius:10px"><b>⚔️ 关底综合题</b><br>${r.question}</div>
+      <div style="color:#8fa0d0;font-size:12px;margin:8px 0">邀请队友：${r.buddy_name}（AI 扮演，他也没掌握好——你们要互相补台）</div>
+      <textarea id="bossAns" rows="3" placeholder="写下你的作答，搭子会随后补充…"></textarea>
+      <div class="row" style="margin-top:8px"><button onclick="bossFight(document.getElementById('bossAns').value)">🔥 联手一击（提交裁决）</button></div>`;
+  }else{
+    box.querySelectorAll('button,textarea').forEach(e=>e.disabled=true);
+    box.insertAdjacentHTML('beforeend','<div style="margin-top:10px"><i>⚔️ 我方出击中 · 搭子补充作答中 · Boss 裁决中…（约 20 秒）</i></div>');
+    const r=await j('/api/study/buddy/battle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,answer:myAnswer})});
+    if(r.detail){box.innerHTML='<span style="color:#ff6b81">'+r.detail+'</span>';return;}
+    box.innerHTML=`<div style="padding:14px;background:${r.beaten?'rgba(46,230,168,.15)':'rgba(255,107,129,.15)'};border-radius:12px;margin-bottom:10px">
+      <div style="font-size:18px;font-weight:800">${r.beaten?'🏆 讨伐成功！':'💔 Boss 抵挡住了…'}</div>
+      <div style="font-size:13px;margin-top:4px">${r.report}</div></div>
+      <div style="padding:10px;background:#ffffff10;border-radius:10px;margin-bottom:8px"><b>🙋 我的作答：</b>${myAnswer}</div>
+      <div style="padding:10px;background:#ffffff10;border-radius:10px;margin-bottom:8px"><b>👥 ${r.buddy_name} 的补充：</b>${r.buddy_answer}</div>
+      <div style="padding:10px;background:rgba(108,140,255,.12);border-radius:10px">
+        <b>👹 Boss 验收：</b>命中要点 <b style="color:#2ee6a8">${r.found.length}</b> 个（${r.found.join('、')||'—'}）· 漏掉 <b style="color:#ff6b81">${r.missed.length}</b> 个（${r.missed.join('、')||'—'}）
+        ${r.beaten?'<br><small style="color:#2ee6a8">该 Boss 已被击破，可去匹配新搭子召唤下一个。</small>':''}</div>`;
+  }
+}
+document.querySelectorAll('.menu').forEach(m=>m.onclick=()=>{
+  document.querySelectorAll('.menu').forEach(x=>x.classList.remove('active'));
+  m.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const pid=m.dataset.p;
+  const panel=document.getElementById('p-'+pid);
+  panel.classList.add('active');
+  panel.style.display='block';
+  if(pid && pid.startsWith('dyn')){
+    const idx=parseInt(pid.replace('dyn',''));
+    loadMenuData(idx, MENUS[idx], panel);
+  }
+  if(pid==='graph')draw();
+  if(pid==='twin')twinInit();
+  if(pid==='review')battleOpen();
+  if(pid==='wrong')courtOpen(0);
+  if(pid==='root')rootTrace();
+  if(pid==='oracle')oracleRun();
+  if(pid==='quiz')quizBrief();
+});
+// ---------- 记忆保卫战：阵地战式间隔复习（防御指挥官 = LangChain ReAct 智能体） ----------
+async function battleOpen(){
+  const box=document.getElementById('reviewBox');
+  box.innerHTML='<i>🛰️ 防御指挥官扫描记忆阵地中…</i>';
+  const r=await j('/api/review/battle?sid='+sid);
+  if(!r.fronts.length){box.innerHTML='<p>🎉 全部阵地安全：今天没有到期考点。明天再来巡防。</p>';return;}
+  box.innerHTML=`<p style="color:#ffb454">⚠️ <b>${r.n_lost} 个阵地失守</b>（艾宾浩斯间隔超期）。答对即收复，失守越久越危急。</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0">
+      ${r.fronts.map((f,i)=>{const c=f.overdue_days>=3?'#ff6b81':f.overdue_days>=1?'#ffb454':'#8fa0d0';
+        return `<div onclick="battleFight(${i})" style="cursor:pointer;min-width:130px;padding:8px 10px;border:1px solid ${c};border-radius:10px;background:${c}18">
+          <b style="color:${c}">阵地 · ${f.name}</b><br>
+          <span style="font-size:12px;color:#8fa0d0">超期 ${f.overdue_days} 天 · 掌握 ${(f.mastery*100).toFixed(0)}%</span></div>`}).join('')}
+    </div>
+    <div id="battleBox"></div>
+    <button onclick="battleBrief()" style="margin-top:10px">🫡 向指挥官要战术简报</button>
+    <div id="briefBox" style="margin-top:8px;font-size:13px"></div>`;
+  window._fronts=r.fronts;
+}
+async function battleFight(i){
+  const f=window._fronts[i],box=document.getElementById('battleBox');
+  box.innerHTML=`<div style="padding:10px;background:rgba(255,180,84,.12);border-radius:10px">
+    <b>⚔️ 收复「${f.name}」阵地</b><br>${f.question}
+    <textarea id="btAns" rows="2" style="margin-top:8px"></textarea>
+    <div style="margin-top:8px"><button onclick="battleGo(${i})">发起冲锋</button></div>
+    <div id="btRes" style="margin-top:8px;font-size:13px"></div></div>`;
+}
+async function battleGo(i){
+  const f=window._fronts[i],ans=document.getElementById('btAns').value;
+  document.getElementById('btRes').innerHTML='<i>🧑‍✈️ 指挥官判卷中…</i>';
+  const r=await j('/api/review/answer',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sid,qid:f.qid,answer:ans})});
+  document.getElementById('btRes').innerHTML=r.correct
+    ?`<b style="color:#2ee6a8">✅ 阵地收复成功！</b> ${r.comment||''} 掌握度回升至 ${(r.mastery*100).toFixed(0)}%`
+    :`<b style="color:#ff6b81">💥 收复失败（${r.score} 分）</b> ${r.comment||''}${r.mastery!==undefined?` 掌握度 ${(r.mastery*100).toFixed(0)}%，阵地仍在敌手，稍后再战`:''}`;
+}
+async function battleBrief(){
+  const box=document.getElementById('briefBox');
+  box.innerHTML='<i>🫡 ReAct 智能体行动中（扫描阵地→撰写简报）…</i>';
+  const r=await j('/api/review/brief?sid='+sid);
+  box.innerHTML=`<div style="padding:10px;background:rgba(108,140,255,.10);border-radius:10px">
+    <div>${r.answer||'(指挥官沉默)'}</div>
+    <div style="margin-top:6px;color:#8fa0d0;font-size:12px">工具轨迹：${(r.steps||[]).map(s=>s.tool).join(' → ')||'（无调用）'}</div></div>`;
+}
+// ---------- 错题检察院：ReAct 检察官智能体（起诉-取证-判决-提审闭环） ----------
+const VERDICT_LBL={guilty_persistent:['真性薄弱·判处重修','#ff6b81'],fake_recovery:['假性康复·留观（背答案嫌疑）','#ffb454'],healed:['已自愈·当庭结案','#2ee6a8'],upstream_infection:['上游传染·先修上游','#b08bff']};
+async function courtOpen(fresh){
+  const box=document.getElementById('courtBox');
+  box.innerHTML=`<i>⚖️ 检察官${fresh?'出庭取证（ReAct 多轮侦查）':'翻阅判决档案'}…</i>`;
+  const r=await j('/api/wrong/court?sid='+sid+'&fresh='+fresh);
+  if(!r.cases.length){box.innerHTML='<p style="color:var(--good)">✅ 无未决案件——暂无错题记录，去「今日自测」答几题试试。</p>';return}
+  box.innerHTML=`<p style="color:#8fa0d0;font-size:12.5px">共 ${r.cases.length} 桩在办案件（真实答题记录 ${r.n_records} 条）</p>`+
+    r.cases.map((x,i)=>{const v=VERDICT_LBL[x.verdict];
+      return `<div style="padding:10px;margin:6px 0;background:#ffffff10;border-radius:8px">
+      <b>${x.concept}</b> 错 ${x.wrong}/${x.total} 次 · 错误率 ${(x.wrong_rate*100).toFixed(0)}%
+      ${v?`<span style="display:inline-block;padding:2px 10px;margin-left:6px;background:${v[1]}33;border-radius:12px;font-size:11px;color:${v[1]}">⚖️ ${v[0]}</span>`
+        :'<span style="display:inline-block;padding:2px 10px;margin-left:6px;background:#8fa0d033;border-radius:12px;font-size:11px">📁 待侦查（点「重新侦查」）</span>'}
+      ${x.closed?'<span style="display:inline-block;padding:2px 10px;margin-left:6px;background:#2ee6a833;border-radius:12px;font-size:11px;color:#2ee6a8">✅ 已结案</span>':''}
+      ${x.charge?`<div style="font-size:12.5px;margin-top:4px;color:#cdd7ff">罪名：${x.charge}${x.prescription?` ｜ 量刑：${x.prescription}`:''}</div>`:''}
+      ${x.answer?`<div style="margin-top:6px;padding:7px;background:rgba(138,91,255,.1);border-radius:7px;font-size:12.5px;line-height:1.7"><b style="color:#b08bff">🧑‍⚖️ 结案陈词：</b>${x.answer}</div>`:''}
+      ${x.steps&&x.steps.length?`<details style="margin-top:5px;font-size:12px;color:#8fa0d0"><summary>侦查轨迹（${x.steps.length} 次工具调用）</summary>${x.steps.map(s=>`<div style="margin:4px 0">🔧 <b>${s.tool}</b>(${Object.entries(s.args||{}).map(([k,v])=>k+'='+String(v).slice(0,28)).join(', ')})<br><span style="opacity:.8">↳ ${s.result||''}</span></div>`).join('')}</details>`:''}
+      <button class="ghost" style="margin-top:6px;font-size:12px" onclick="courtRetrial(${i})">🔨 开庭提审（当庭重做一道）</button>
+      <div id="rt${i}" style="margin-top:8px;font-size:13px"></div></div>`}).join('');
+  window._courtCases=r.cases;
+}
+async function courtRetrial(i){
+  const c=window._courtCases[i],box=document.getElementById('rt'+i);
+  const r=await j('/api/wrong/retrial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid:sid,cid:c.cid})});
+  if(r.detail){box.innerHTML=`<span style="color:#ff6b81">${r.detail}</span>`;return}
+  box.innerHTML=`<div style="padding:8px;background:#ffffff0d;border-radius:7px"><b>🔨 提审题（${r.tier==='foundation'?'基础':r.tier==='consolidation'?'进阶':'迁移'}）：</b>${r.question}
+    <textarea id="rtAns${i}" rows="2" style="width:100%;margin-top:6px;background:#ffffff10;border:1px solid #ffffff2a;border-radius:6px;color:#e8ecff;padding:6px;font-family:inherit" placeholder="当庭作答（LLM 判卷，要点覆盖≥60% 通过）…"></textarea>
+    <button onclick="courtSubmit(${i},'${r.qid}','${r.cid}')" style="margin-top:6px;font-size:12px">递交答辩</button>
+    <div id="rtRes${i}" style="margin-top:6px;line-height:1.7"></div></div>`;
+}
+async function courtSubmit(i,qid,cid){
+  const ans=document.getElementById('rtAns'+i).value.trim();
+  if(!ans){alert('请先当庭作答');return}
+  document.getElementById('rtRes'+i).innerHTML='<i>🏛️ 合议中…</i>';
+  const r=await j('/api/wrong/retrial/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid:sid,qid:qid,cid:cid,answer:ans})});
+  document.getElementById('rtRes'+i).innerHTML=r.correct
+    ?`<b style="color:#2ee6a8">✅ 答辩通过${r.closed?'，本案当庭结案':''}</b>（得分 ${r.score} ｜ ${r.comment} ｜ 掌握度→${r.mastery}）`
+    :`<b style="color:#ff6b81">❌ 答辩不成立</b>（得分 ${r.score} ｜ ${r.comment}），案件维持原判`;
+}
+async function login(){
+  sid=document.getElementById('sid').value.trim()||'s001';
+  document.getElementById('loginBox').style.display='none';
+  document.getElementById('work').style.display='block';
+  try{
+    await fetch('/api/student/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid})});
+    await refresh();
+  }catch(e){console.error('login err',e);}
+}
+// 支持 ?sid=s001 直达工作台（便于演示链接与自动化截图）
+const qsSid=new URLSearchParams(location.search).get('sid');
+if(qsSid){document.getElementById('sid').value=qsSid;login();}
+async function refresh(){
+  const s=await j('/api/state?sid='+sid);
+  document.getElementById('hello').innerText='你好，'+sid;
+  document.getElementById('tier').innerText='层级:'+s.tier+' · 平均'+Math.round(s.avg*100)+'%';
+  document.getElementById('streak').innerText='连续打卡 '+s.streak+' 天';
+  document.getElementById('avg').innerText=(s.avg*100).toFixed(0)+'%';
+  document.getElementById('dueN').innerText=s.review_due.length;
+  document.getElementById('dueTip').innerText=s.review_due.length?'点「间隔复习」开练':'今日无到期项 🎉';
+  document.getElementById('streakN').innerText=(s.streak||0)+' 天';
+  document.getElementById('tierTip').innerText='当前层级：'+s.tier;
+  document.getElementById('plan').innerHTML=s.weak_plan.length?s.weak_plan.map((p,i)=>`${i+1}. ${p.concept} 收益${p.scoreup_gain}`).join('<br>'):'🎉 全达标';
+  // LLM 供应商徽章：显示当前实际使用的供应商（DeepSeek/千问/豆包），悬停看统计
+  j('/api/llm/status').then(st=>{
+    const p=document.getElementById('llmPill');
+    p.innerText='🟢 '+(st.last||'LLM 待命');
+    p.title='故障转移链：'+st.chain.join(' → ')+'\n'+
+      st.chain.map(n=>`${n}: 成功${st.stats[n].ok} 失败${st.stats[n].fail}`).join('\n');
+  }).catch(()=>{document.getElementById('llmPill').innerText='🔴 LLM 离线';});
+  buildGraph(s.concepts);nextQuiz();
+}
+function buildGraph(concepts){
+  cv.width=cv.clientWidth||560;cv.height=360;
+  nodes=concepts.map((c,i)=>({x:cv.width/2+Math.cos(i/concepts.length*6.28)*Math.min(140,cv.width/3),
+    y:cv.height/2+Math.sin(i/concepts.length*6.28)*105,r:13,c}));
+  const id2i={};concepts.forEach((c,i)=>id2i[c.cid]=i);edges=[];
+  concepts.forEach((c,i)=>c.prereq.forEach(p=>{if(id2i[p]!=null)edges.push([id2i[p],i])}));
+  draw();
+}
+function color(p){return p==null?'#5b6c9e':p<0.4?'#ff6b81':p<0.6?'#ffb454':p<0.8?'#e6d35b':'#2ee6a8'}
+function draw(){
+  if(!nodes.length)return;cx.clearRect(0,0,cv.width,cv.height);
+  edges.forEach(([a,b])=>{cx.strokeStyle='rgba(108,140,255,.25)';cx.beginPath();cx.moveTo(nodes[a].x,nodes[a].y);cx.lineTo(nodes[b].x,nodes[b].y);cx.stroke()});
+  nodes.forEach(n=>{cx.beginPath();cx.arc(n.x,n.y,n.r,0,6.28);cx.fillStyle=color(n.c.mastery);cx.fill();
+    cx.fillStyle='#fff';cx.font='10px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(n.c.name.slice(0,5),n.x,n.y)});
+}
+async function upload(){
+  const f=document.getElementById('file').files[0];if(!f)return alert('先选文件');
+  const fd=new FormData();fd.append('sid',sid);fd.append('file',f);
+  const r=await fetch('/api/upload',{method:'POST',body:fd}).then(x=>x.json());
+  document.getElementById('upResult').innerHTML='抽取'+r.extracted+'考点，过滤垃圾'+r.filtered+'个：'+r.kept.join('、');
+  // 📑 课件拆解师（博士级：奥苏伯尔脚手架 + 语义聚类 + 前置缺口诊断）自动拆解
+  const ir=await j('/api/insight/courseware?sid='+sid);
+  let decon='<div class="card" style="margin-top:10px;border-left:3px solid #6c8cff">';
+  decon+=reactTrace(ir,'课件拆解师轨迹');
+  // 奥苏伯尔认知脚手架三件套
+  if(ir.scaffold&&ir.scaffold.ok&&ir.scaffold.scaffold){
+    const s=ir.scaffold.scaffold;
+    decon+=`<div style="margin-top:8px;padding:10px;background:rgba(46,230,168,.08);border-radius:6px;border:1px solid rgba(46,230,168,.25)">
+      <b style="color:var(--good)">🧠 奥苏伯尔学习脚手架 · ${s.name}</b>
+      <div style="font-size:13px;margin-top:6px;line-height:1.7">
+        <div><b style="color:#9fb0e8">先行组织者：</b>${s.advance_organizer||'—'}</div>
+        <div><b style="color:#9fb0e8">类比：</b>${s.analogy||'—'}</div>
+        <div><b style="color:#9fb0e8">边界案例：</b>${s.boundary_case||'—'}</div></div></div>`;
+  }
+  // 前置知识缺口诊断
+  if(ir.prerequisite_gaps&&ir.prerequisite_gaps.top_gaps&&ir.prerequisite_gaps.top_gaps.length){
+    decon+='<div style="margin-top:8px"><b style="color:var(--bad)">⚠ 前置知识缺口（该学但缺先修）</b>';
+    ir.prerequisite_gaps.top_gaps.forEach(g=>{
+      decon+=`<div style="font-size:12px;margin-left:10px;margin-top:3px">·${g.name}<span style="color:#9fb0e8">（掌握${g.own_mastery}·权重${g.exam_weight}·风险${g.risk}）</span>缺先修：${g.missing.map(m=>m.name+'('+m.mastery+')').join('、')}</div>`;
+    });
+    decon+='</div>';
+  }
+  // 语义聚类隐性主题群
+  if(ir.clusters&&ir.clusters.clusters&&ir.clusters.clusters.length){
+    decon+='<div style="margin-top:8px"><b style="color:#6c8cff">🔮 隐性主题结构</b>';
+    if(ir.clusters.n_cross_chapter>0)decon+=` <span class="pill" style="color:var(--warn);border-color:var(--warn)">${ir.clusters.n_cross_chapter}个跨章节群</span>`;
+    ir.clusters.clusters.forEach(cl=>{
+      const flag=cl.cross_chapter?'<span style="color:var(--warn)">[跨章]</span> ':'';
+      decon+=`<div style="font-size:12px;margin-left:10px;margin-top:3px">${flag}${cl.theme}：${cl.gist||''}</div>`;
+    });
+    decon+='</div>';
+  }
+  decon+='</div>';
+  document.getElementById('upResult').innerHTML+=decon;
+  refresh();
+}
+async function nextQuiz(){
+  const q=await j('/api/quiz/next?sid='+sid);
+  const box=document.getElementById('quizBox');
+  if(q.done){box.innerHTML='<div style="color:var(--good)">'+q.msg+'</div>';return}
+  const tcol=q.tier==='extension'?'var(--bad)':q.tier==='consolidation'?'var(--warn)':'var(--good)';
+  box.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <span class="pill" style="border-color:${tcol}">🎯 能力值 <b>${q.elo||1200}</b></span>
+      ${q.tier_cn?`<span class="pill" style="color:${tcol}">难度：${q.tier_cn}</span>`:''}
+      ${q.adaptive?'<span class="pill" style="color:#9fb0e8">自适应选题（CAT）</span>':''}</div>
+    <div style="font-size:14px">Q：${q.question}</div>
+    <textarea id="ans" rows="2" style="margin-top:8px"></textarea>
+    <div class="row" style="margin-top:8px">把握度 <input id="conf" type="range" min="1" max="5" value="3" style="flex:1">
+    <button onclick="submitAnswer('${q.qid}','${q.cid}')">提交</button></div>
+    <div id="grade" style="margin-top:8px;font-size:13px"></div>`;
+}
+async function submitAnswer(qid,cid){
+  const r=await j('/api/answer',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sid,qid,cid,student_answer:document.getElementById('ans').value,confidence:+document.getElementById('conf').value})});
+  const d=r.elo_delta||0;
+  document.getElementById('grade').innerHTML=`得分<b style="color:${r.score>=0.6?'var(--good)':'var(--bad)'}">${r.score}</b> ${r.comment}<br>掌握度→<b>${r.your_mastery}</b> ${r.calibration.note}<br>
+    <span style="color:${d>=0?'var(--good)':'var(--bad)'};font-size:16px;font-weight:800">🎯 Elo ${d>=0?'+':''}${d} → ${r.elo}</span> ${d>=8?'（表现出色，下一题会更难）':d<=-8?'（难度将下调，稳住节奏）':''}<br>
+    <button class="ghost" onclick="nextQuiz()">下一题→</button>`;
+  refresh();
+}
+async function feynman(){
+  const r=await j('/api/feynman',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sid,concept:document.getElementById('fm_c').value,explain:document.getElementById('fm_t').value})});
+  document.getElementById('fm_out').innerHTML=(r.clear?'<span style="color:var(--good)">✓讲清了</span>':'<span style="color:var(--bad)">✗有漏洞</span>')+'<br>遗漏：'+(r.gaps||[]).join('、')+'<br>补讲：'+(r.fix||'');
+}
+async function loadReport(){
+  document.getElementById('report').innerHTML='<i>📅 半月报告官正在整理15天成长档案…</i>';
+  const r=await j('/api/insight/half-month?sid='+sid);
+  const ec=r.early_acc,lc=r.late_acc,md=r.mastery_delta;
+  document.getElementById('report').innerHTML=reactTrace(r,'半月报告官轨迹')+
+    `<p>活跃 <b>${r.n_days_active||0}</b> 天 · 累计 <b>${r.n_total||0}</b> 题 · 掌握度 <b>${((r.avg_mastery||0)*100).toFixed(0)}%</b> ${md!=null?(md>=0?'<span style="color:var(--good)">↑'+(md*100).toFixed(1)+'%</span>':'<span style="color:var(--bad)">↓'+(md*100).toFixed(1)+'%</span>'):''}</p>
+    <p style="color:#8fa0d0">进步走势：前半 ${ec!=null?(ec*100).toFixed(0)+'%':'-'} → 后半 ${lc!=null?(lc*100).toFixed(0)+'%':'-'} · 当前最薄弱：${(r.weakest||[]).map(w=>w[0]+'('+w[1]+')').join('、')||'无'}</p>`;
+}
+async function loadAdvanced(){await runForensic()}
+async function runForensic(){
+  const box=document.getElementById('advOut');
+  box.innerHTML='<i>🧠 认知法医尸检中（ReAct 多轮取证）…</i>';
+  const r=await j('/api/advanced/forensic?sid='+sid);
+  box.innerHTML=`<div style="padding:10px;background:rgba(138,91,255,.1);border-radius:8px"><b style="color:#b08bff">⚖️ 总鉴定意见：</b>${r.answer||'(法医沉默)'}</div>
+    <details style="margin-top:6px;font-size:12px;color:#8fa0d0"><summary>尸检轨迹（${(r.steps||[]).length} 次工具调用）</summary>${(r.steps||[]).map(s=>`<div style="margin:4px 0">🔧 <b>${s.tool}</b>(${Object.entries(s.args||{}).map(([k,v])=>k+'='+String(v).slice(0,24)).join(', ')})<br><span style="opacity:.8">↳ ${s.result||''}</span></div>`).join('')}</details>`;
+}
+async function sendChat(){
+  const t=document.getElementById('chatin').value.trim();if(!t)return;
+  const log=document.getElementById('chatlog');
+  const safe=(s)=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  log.innerHTML+=`<div style="background:rgba(46,230,168,.15);padding:9px 12px;border-radius:10px;align-self:flex-end;max-width:85%">${safe(t)}</div>`;
+  document.getElementById('chatin').value='';
+  const r=await j('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,message:t})});
+  const cites=(r.citations||[]).map(c=>`<div style="margin-top:6px;padding:6px 9px;border-left:2px solid #2ee6a8;background:rgba(46,230,168,.07);border-radius:6px;font-size:12px;color:#c9d4f0"><b>片段${c.n}</b><span style="color:#7c8bb8"> · rrf ${c.rrf} · bm25 ${c.bm25}</span><br>${safe(c.text)}</div>`).join('');
+  const web=(r.web||[]).map(w=>{const ok=/^https?:\/\//.test(w.url||'');const t=ok?`<a href="${safe(w.url)}" target="_blank" rel="noopener" style="color:#7fd6ff">${safe(w.title||w.url)}</a>`:safe(w.title||'');return `<div style="margin-top:6px;padding:6px 9px;border-left:2px solid #f5a623;background:rgba(245,166,35,.07);border-radius:6px;font-size:12px;color:#c9d4f0"><b>网络${w.n}</b> ${t}<br>${safe(w.text)}</div>`}).join('');
+  log.innerHTML+=`<div style="background:rgba(108,140,255,.15);padding:9px 12px;border-radius:10px;align-self:flex-start;max-width:85%">${safe(r.answer)}
+    ${(cites||web)?'<div style="margin-top:8px;font-size:11px;color:#8fa0d0">检索证据</div>'+cites+web:''}
+    <br><small style="color:#8fa0d0">🛠️ 工具轨迹：${(r.steps||[]).map(s=>s.tool).join(' → ')||'直答'}</small></div>`;
+  log.scrollTop=log.scrollHeight;
+}
+async function runDiagnose(){
+  const box=document.getElementById('diagOut');
+  box.innerHTML='<i>🩺 CT 室扫描中（ReAct 智能体沿先修链取证）…</i>';
+  const r=await j('/api/diagnose/ct?sid='+sid);
+  box.innerHTML=`<div style="padding:10px;background:rgba(108,140,255,.1);border-radius:8px"><b>🩺 CT 诊断：</b>${r.answer||'(医生沉默)'}</div>
+    <details style="margin-top:6px;font-size:12px;color:#8fa0d0"><summary>扫描轨迹（${(r.steps||[]).length} 次工具调用）</summary>${(r.steps||[]).map(s=>`<div style="margin:4px 0">🔧 <b>${s.tool}</b>(${Object.entries(s.args||{}).map(([k,v])=>k+'='+String(v).slice(0,24)).join(', ')})<br><span style="opacity:.8">↳ ${s.result||''}</span></div>`).join('')}</details>`;
+}
+// ---------- 🌳 根因侦探 / 🔮 押题先知 / ✍️ 考官开局（LangChain ReAct） ----------
+async function rootTrace(fresh){
+  const box=document.getElementById('rootOut');
+  box.innerHTML='<i>🔍 侦探查案中（ReAct 多轮取证）…</i>';
+  const r=await j('/api/root/trace?sid='+sid);
+  box.innerHTML=`<div style="padding:10px;background:rgba(46,230,168,.1);border-radius:8px"><b style="color:#2ee6a8">🌳 查案结论：</b>${r.answer||'(侦探沉默)'}</div>
+    <details style="margin-top:6px;font-size:12px;color:#8fa0d0" open><summary>侦查轨迹（${(r.steps||[]).length} 次工具调用）</summary>${(r.steps||[]).map(s=>`<div style="margin:4px 0">🔧 <b>${s.tool}</b>(${Object.entries(s.args||{}).map(([k,v])=>k+'='+String(v).slice(0,26)).join(', ')})<br><span style="opacity:.8">↳ ${s.result||''}</span></div>`).join('')}</details>`;
+}
+async function oracleRun(fresh){
+  const box=document.getElementById('oracleOut');
+  box.innerHTML='<i>🔮 先知研判中（采集班级/个人/权重三路证据）…</i>';
+  const r=await j('/api/oracle/predict?sid='+sid);
+  box.innerHTML=`<div style="padding:10px;background:rgba(139,91,255,.1);border-radius:8px"><b style="color:#b08bff">🔮 押题结论：</b>${r.answer||'(先知沉默)'}</div>
+    <details style="margin-top:6px;font-size:12px;color:#8fa0d0" open><summary>研判轨迹（${(r.steps||[]).length} 次工具调用）</summary>${(r.steps||[]).map(s=>`<div style="margin:4px 0">🔧 <b>${s.tool}</b>(${Object.entries(s.args||{}).map(([k,v])=>k+'='+String(v).slice(0,26)).join(', ')})<br><span style="opacity:.8">↳ ${s.result||''}</span></div>`).join('')}</details>`;
+}
+async function quizBrief(){
+  const box=document.getElementById('quizBriefBox');
+  box.innerHTML='<i>🧑‍🏫 考官审阅你的学情档案…</i>';
+  const r=await j('/api/quiz/brief?sid='+sid);
+  box.innerHTML=`<div style="padding:8px 10px;background:rgba(255,180,84,.1);border-radius:8px"><b style="color:#ffb454">🧑‍🏫 考官开局：</b>${r.answer||''}
+    <br><small style="color:#8fa0d0">🛠️ ${(r.steps||[]).map(s=>s.tool).join(' → ')||''}</small></div>`;
+}
+// ---------- 数字孪生对抗赛 ----------
+function renderTwinScore(sc,sim){
+  if(sc)document.getElementById('twinScore').innerHTML=
+    `你 ${sc.student} : ${sc.twin} 孪生`+(sc.tie?` <small style="font-size:13px;color:#9fb0e8">(平${sc.tie})</small>`:'');
+  if(sim){
+    document.getElementById('twinSim').innerHTML=sim.sim<0?'—':(sim.sim*100).toFixed(0)+'%';
+    const t=sim.sim_trend||[];
+    document.getElementById('twinTrend').innerHTML=t.length?('近5场滑窗：'+t.map(x=>(x.sim*100).toFixed(0)+'%').join(' → ')):'尚无趋势数据';
+  }
+}
+function renderTwinProfile(p){
+  const pr=p.profile||{};
+  const bias={overconfident:'高估型',underconfident:'低估型',balanced:'校准'}[pr.confidence_bias]||pr.confidence_bias;
+  document.getElementById('twinProfile').innerHTML=
+    (p.cold?'<span class="pill" style="color:var(--warn)">冷启动 · 数据不足，基于先验</span><br>':'')+
+    (pr.persona||'—')+'<br><b>认知误区：</b><br>'+
+    ((pr.misconceptions||[]).map(m=>`• ${m.name}：${m.pattern}`).join('<br>')||'暂无')+
+    `<br><b>信心偏差：</b><span class="pill">${bias}</span>`;
+  if(p.score)renderTwinScore(p.score,null);
+}
+function renderTwinQuestion(q){
+  document.getElementById('twinBattle').innerHTML=`<div style="font-size:14px">Q：${q.question}</div>
+    <textarea id="twAns" rows="3" style="margin-top:8px" placeholder="你的作答…"></textarea>
+    <div class="row" style="margin-top:8px">把握度 <input id="twConf" type="range" min="1" max="5" value="3" style="flex:1">
+    <button onclick="twinSubmit('${q.qid}')">提交并召唤孪生</button></div>`;
+}
+async function twinInit(){
+  try{
+    const s=await j('/api/twin/state?sid='+sid);
+    renderTwinScore(s.score,s.sim);
+    if(s.pending){renderTwinQuestion(s.pending);document.getElementById('twinReveal').innerHTML='有一局未完成的对战，继续作答吧。';}
+    const p=await j('/api/twin/profile?sid='+sid);
+    renderTwinProfile(p);
+  }catch(e){document.getElementById('twinProfile').innerText='加载失败：'+e.message;}
+}
+async function twinStart(){
+  const box=document.getElementById('twinBattle');
+  box.innerHTML='<i>红方智能体正在研究你的孪生画像，设计诱饵题…</i>';
+  const r=await j('/api/twin/battle/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid})});
+  if(r.done){box.innerHTML='<span style="color:var(--warn)">'+r.msg+'</span>';return}
+  renderTwinQuestion(r);
+}
+async function twinSubmit(qid){
+  const a=document.getElementById('twAns').value.trim();
+  if(!a)return alert('先写下你的答案');
+  const box=document.getElementById('twinBattle');
+  box.innerHTML='<i>孪生正在盲答同一题（它看不到你的答案）…</i>';
+  const r=await j('/api/twin/battle/submit',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sid,qid,student_answer:a,confidence:+document.getElementById('twConf').value})});
+  if(r.detail){box.innerHTML='<span style="color:var(--bad)">'+r.detail+'</span>';return}
+  const b=r.battle;
+  const badge=b.winner==='student'?'<span style="color:var(--good)">🎉 你赢了孪生</span>'
+    :b.winner==='twin'?'<span style="color:var(--bad)">🤖 孪生赢了</span>':'<span style="color:var(--warn)">🤝 平局</span>';
+  box.innerHTML='<span style="color:var(--good)">本局完成，点"开始对战"继续。</span>';
+  document.getElementById('twinReveal').innerHTML=`
+    ${badge} ${b.trick?`<small style="color:#9fb0e8">（红方诱饵设计：${b.trick}）</small>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
+      <div style="background:rgba(46,230,168,.1);padding:10px;border-radius:10px"><b>你的答案</b> ${b.s_correct?'<span style="color:var(--good)">✓</span>':'<span style="color:var(--bad)">✗</span>'}<br><small>${b.student_answer}</small></div>
+      <div style="background:rgba(108,140,255,.12);padding:10px;border-radius:10px"><b>孪生的答案</b> ${b.t_correct?'<span style="color:var(--good)">✓</span>':'<span style="color:var(--bad)">✗</span>'}（把握 ${b.twin_conf}/5）<br><small>${b.twin_answer}</small></div>
+      <div style="background:rgba(255,255,255,.05);padding:10px;border-radius:10px"><b>参考答案</b><br><small>${b.reference}</small></div>
+    </div>
+    <div style="margin-top:10px">🔍 ${b.analysis}<br>💡 <b>${r.insight||''}</b></div>`;
+  renderTwinScore(r.score,r.sim);
+}
+async function runDebate(){
+  const q=document.getElementById('debateQ').value.trim();
+  const a=document.getElementById('debateA').value.trim();
+  if(!q||!a){alert('题目和答案都要填');return}
+  document.getElementById('debateOut').innerHTML='<i>三方智能体辩论中...</i>';
+  const r=await fetch('/api/debate-grade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sid,question:q,answer:a})}).then(x=>x.json());
+  if(!r.debate){document.getElementById('debateOut').innerText='辩论失败: '+r.error;return}
+  const L=r.lenient,S=r.strict,J=r.judge;
+  document.getElementById('debateOut').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:rgba(46,230,168,.12);padding:12px;border-radius:10px">
+        <b>🟢 宽松派 ${L.score}/10</b><br><small>${L.say||''}</small><br>
+        ${(L.points||[]).map(p=>'• '+p).join('<br>')}
+      </div>
+      <div style="background:rgba(255,107,129,.12);padding:12px;border-radius:10px">
+        <b>🔴 严格派 ${S.score}/10</b><br><small>${S.say||''}</small><br>
+        ${(S.errors||[]).map(p=>'• '+p).join('<br>')}
+      </div>
+    </div>
+    <div style="background:rgba(108,140,255,.18);padding:12px;border-radius:10px;margin-top:10px">
+      <b>⚖️ 裁判裁决 ${J.final_score}/10</b><br>
+      错因分类：<b>${J.cause}</b><br>修复建议：${J.fix}
+    </div>`;
+}
+// 演示深链：/?ask=问题 → 自动切到 AI 助教并提问（答辩截图与分享复现用）
+(function(){const q=new URLSearchParams(location.search).get('ask');if(!q)return;
+  setTimeout(()=>{document.querySelector('.menu[data-p="chat"]').click();
+    document.getElementById('chatin').value=q;sendChat();},1000);})();
+</script>
+</body></html>

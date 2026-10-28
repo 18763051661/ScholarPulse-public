@@ -1,0 +1,111 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScholarPulse · 生成质量抽检</title>
+<style>
+:root{--bg:#0b1020;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);
+  --acc:#6c8cff;--good:#2ee6a8;--warn:#ffb454;--bad:#ff6b81;--txt:#e8ecff;--mut:#9fb0e8}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,"Microsoft YaHei",sans-serif;
+  background:radial-gradient(1200px 700px at 70% -10%,#1b2a5e 0%,var(--bg) 55%);
+  color:var(--txt);min-height:100vh;padding:26px 30px}
+.wrap{max-width:1180px;margin:0 auto}
+.head{display:flex;align-items:flex-end;gap:14px;margin-bottom:6px}
+h1{margin:0;font-size:22px;font-weight:800;background:linear-gradient(90deg,#6c8cff,#b06cff);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:12px;color:var(--mut);margin-bottom:16px}
+button{background:linear-gradient(90deg,#5b7cff,#8a5bff);color:#fff;border:0;
+  padding:9px 16px;border-radius:9px;cursor:pointer;font-size:13px}
+button:disabled{opacity:.5;cursor:default}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;backdrop-filter:blur(8px)}
+.kpi h3{margin:0 0 6px;font-size:12px;color:var(--mut);letter-spacing:.5px;font-weight:400}
+.kpi .v{font-size:28px;font-weight:800}
+.kpi .u{font-size:12px;color:var(--mut);margin-left:4px;font-weight:400}
+.case{border-left:3px solid #6c8cff;margin-bottom:12px}
+.case.bad{border-left-color:#ff6b81}
+.q{font-size:14px;font-weight:700;margin-bottom:8px}
+.a{font-size:12px;line-height:1.8;color:#cdd7ff;background:rgba(0,0,0,.2);
+  border-radius:8px;padding:10px;margin:8px 0;white-space:pre-wrap}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid}
+.ok{background:rgba(46,230,168,.15);color:#8ff0cd;border-color:rgba(46,230,168,.4)}
+.no{background:rgba(255,107,129,.14);color:#ffb3bd;border-color:rgba(255,107,129,.4)}
+.n{background:rgba(255,255,255,.06);color:#9fb0e8;border-color:rgba(255,255,255,.15)}
+.note{font-size:12px;color:var(--mut);line-height:1.9}
+a{color:#9fb0e8}
+</style></head><body>
+<div class="wrap">
+  <div class="head">
+    <h1>生成质量抽检</h1>
+    <div style="margin-left:auto"><button id="btn" onclick="load()">开始抽检</button></div>
+  </div>
+  <div class="sub">6 类用例 · 规则判定引用 / 拒答 / 编造声明 / 贴题 · 零人工评分 · 需调用模型（约 8–15 秒）</div>
+
+  <div class="kpis">
+    <div class="card kpi"><h3>通过率</h3><div class="v" id="k1">—</div></div>
+    <div class="card kpi"><h3>通过 / 总数</h3><div class="v" id="k2">—</div></div>
+    <div class="card kpi"><h3>无据声明</h3><div class="v" id="k3" style="color:#2ee6a8">—</div></div>
+    <div class="card kpi"><h3>平均耗时</h3><div class="v" id="k4" style="color:#ffb454">—<span class="u">ms</span></div></div>
+  </div>
+
+  <div id="list"><div class="card note">点击右上角「开始抽检」，将依次跑 6 条用例并给出判定。</div></div>
+
+  <div class="card" style="margin-top:16px">
+    <h3 style="margin:0 0 10px;font-size:13px;color:var(--mut)">判定口径</h3>
+    <div class="note">
+      ① <b>引用</b>：答案出现 [片段n] 标记，说明结论可溯源。<br>
+      ② <b>拒答</b>：资料无相关内容时明确说明，而不是硬编。<br>
+      ③ <b>声明有据</b>：答案里的数字与 /api/ 路径逐个回查证据，找不到即判无据——<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;这是代码级硬约束（core/grounding.py），线上助教走同一套校验。<br>
+      ④ <b>贴题</b>：问题二元组在答案中的覆盖率 ≥ 0.3，防止答非所问。<br>
+      用例覆盖六类：课程内可答 ×2、课程外应拒答 ×2、虚假接口 ×1、不存在的功能 ×1。
+    </div>
+  </div>
+
+  <div style="margin-top:18px;font-size:12px"><a href="/">← 返回工作台</a> ｜ <a href="/eval">检索评测 →</a></div>
+</div>
+<script>
+function tag(name, on, positive){
+  const cls = on ? (positive ? "ok" : "no") : "n";
+  return `<span class="tag ${cls}">${name}${on ? " ✓" : " ✗"}</span>`;
+}
+function render(d){
+  document.getElementById("k1").textContent = Math.round(d.rate * 100) + "%";
+  document.getElementById("k2").textContent = d.passed + " / " + d.total;
+  const k3 = document.getElementById("k3");
+  k3.textContent = d.unverified_total;
+  k3.style.color = d.unverified_total ? "#ff6b81" : "#2ee6a8";
+  document.getElementById("k4").innerHTML = d.avg_ms + '<span class="u">ms</span>';
+
+  document.getElementById("list").innerHTML = d.cases.map((c, i) => {
+    const expectTxt = {answer: "应作答", refuse: "应拒答", no_fabricate: "应识破虚假接口"}[c.expect];
+    const tags =
+      tag("引用证据", c.cited, true) +
+      (c.expect === "refuse" ? tag("拒答到位", c.refused, true) : "") +
+      tag("声明有据", c.unverified.length === 0, true) +
+      tag("贴题 " + c.topic, c.topic >= 0.3, true);
+    return `<div class="card case ${c.ok ? "" : "bad"}">
+      <div class="q">${i + 1}. ${c.q} <span class="tag n">${expectTxt}</span>
+        <span class="tag ${c.ok ? "ok" : "no"}" style="float:right">${c.ok ? "通过" : "不通过"} · ${c.ms}ms</span></div>
+      <div class="a">${c.answer.replace(/</g, "&lt;")}</div>
+      <div class="tags">${tags}</div>
+      ${c.unverified.length ? `<div class="tags"><span class="tag no">无据声明：${c.unverified.join(", ")}</span></div>` : ""}
+    </div>`;
+  }).join("");
+}
+async function load(){
+  const b = document.getElementById("btn");
+  b.disabled = true; b.textContent = "抽检中…";
+  document.getElementById("list").innerHTML = '<div class="card note">正在逐条生成与判定，请稍候…</div>';
+  try{
+    const r = await fetch("/api/gen/eval");
+    render(await r.json());
+  }catch(e){
+    document.getElementById("list").innerHTML = `<div class="card note" style="color:#ff6b81">抽检失败：${e}</div>`;
+  }
+  b.disabled = false; b.textContent = "重新抽检";
+}
+// 演示深链：/gen-eval?auto=1 → 打开即跑（答辩截图用）
+if (new URLSearchParams(location.search).has("auto")) load();
+</script>
+</body></html>

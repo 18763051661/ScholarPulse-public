@@ -1,0 +1,186 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScholarPulse 教师端</title>
+<style>
+body{font-family:-apple-system,"Microsoft YaHei",sans-serif;background:#f5f7fb;margin:0;color:#222}
+.wrap{max-width:900px;margin:24px auto;background:#fff;border-radius:14px;padding:28px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+h1{color:#2c3e50} button{background:#8e44ad;color:#fff;border:0;padding:9px 18px;border-radius:8px;cursor:pointer}
+input{padding:9px;border:1px solid #ddd;border-radius:8px}
+.card{background:#f8f9fb;border-radius:10px;padding:16px;margin:14px 0}
+.warn{color:#e74c3c}.letter{background:#fff8e1;border-left:3px solid #f39c12;padding:10px;margin:8px 0;border-radius:6px}
+a{color:#3498db}
+.step{background:#eef3ff;border-left:3px solid #8e44ad;padding:7px 10px;margin:6px 0;border-radius:6px;font-size:13px}
+.chatin{display:flex;gap:8px;margin-top:8px}
+.chatin input{flex:1}
+.role{border-left:3px solid #16a085;background:#f0faf8;padding:8px 10px;margin:6px 0;border-radius:6px;font-size:13px;line-height:1.7}
+.consensus{background:#eafaf1;border-left:3px solid #27ae60;padding:10px;margin-top:8px;border-radius:6px;font-size:13.5px;line-height:1.8}
+.trow{display:flex;align-items:center;gap:6px;font-size:12px;margin:3px 0}
+.tbar{height:12px;border-radius:4px;background:#dfe6f5;flex:1;position:relative}
+.tbar>div{height:100%;border-radius:4px}
+.tname{width:130px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tavg{width:38px;text-align:right}
+</style></head><body><div class="wrap">
+<h1>🏫 ScholarPulse 教师管理后台</h1><a href="/">← 学生端</a>
+<div class="card" id="login">教师编号登录：<input id="tid" value="T001"> <button onclick="login()">登录</button></div>
+<div id="dash" style="display:none"></div></div>
+<script>
+let tid="";
+async function j(u){return (await fetch(u)).json()}
+async function login(){
+  tid=document.getElementById('tid').value.trim()||'T001';
+  document.getElementById('login').style.display='none';
+  const dash=document.getElementById('dash');
+  dash.style.display='block';
+  dash.innerHTML='<div class="card">📊 正在加载班情数据（班级教研官+年级督导员 ReAct 取证，约 15-30 秒）…</div>';
+  try{
+    const r=await j('/api/teacher/class?tid='+tid);
+    if(!r.react && !r.board) throw new Error('接口返回异常');
+    const react=r.react||{answer:r.board?.teaching_advice||'',steps:[]};
+  const tInfo=r.teacher?` · 教师画像：<b>${r.teacher.name}</b>（${r.teacher.subject}）`:'';
+  // ReAct 轨迹渲染器
+  const reactSteps=(react.steps||[]).map(s=>{
+    const args=Object.entries(s.args||{}).map(([k,v])=>k+'='+JSON.stringify(v).slice(0,60)).join(', ');
+    return `<div style="margin:4px 0;font-size:12px">🔧 <b>${s.tool}</b>(${args})<br><span style="color:#666">↳ ${(s.result||'').slice(0,140)}</span></div>`;
+  }).join('');
+  document.getElementById('dash').innerHTML=`
+    <p>教师 <b>${tid}</b>${tInfo} · 在册学生 ${r.student_count} 人 <button onclick="location.reload()">刷新</button></p>
+    <div class="card"><b>🏫 班级教研官（ReAct · LLM 自主推理班级画像）</b>
+      <div style="padding:10px;background:rgba(142,68,173,.08);border-radius:8px;margin-top:8px;line-height:1.8">${react.answer||'(教研官沉默)'}</div>
+      <details style="margin-top:8px;font-size:12px;color:#888"><summary>🤖 智能体推理轨迹（${(react.steps||[]).length} 次工具调用）</summary>${reactSteps||'(未调用工具)'}</details></div>
+    <div class="card"><b>🧬 检索增强备课包（班级薄弱 × 全校误区疫情 × 三通道混合检索 · 零 LLM 确定性证据）</b>
+      <div style="font-size:12px;color:#888;margin:6px 0">教学优先级 = 班级掌握缺口 × (1 + 全校传播R0)——每个考点附课件原文证据链（密集哈希+CSR稀疏BM25+语义嵌入→RRF）与 GraphRAG 先修链</div>
+      <div id="tpOut" style="margin-top:8px">加载中…</div></div>
+    <div class="card"><b>✉️ AI 个性化劝学信（基于根因诊断）</b>
+      ${r.intervention_letters.map(l=>`<div class="letter"><b>致 ${l.to}（平均掌握${l.avg}）：</b><br>${l.letter}</div>`).join('')||'暂无需介入学生'}</div>
+    <div class="card"><b>🏛️ 年级督导员（ReAct · 本班在年级的定位与干预处方）</b>
+      <div id="gradeOut" style="margin-top:8px">加载中…</div></div>
+    <div class="card"><b>🩺 教研会诊（多教师智能体合议）：本班导师 × 年级教研组长 × 学习科学专家 → 教学主席共识</b>
+      <div class="row" style="margin-top:8px">
+        <select id="csSid" style="flex:1">${(r.roster||[]).map(s=>`<option value="${s.sid}">${s.name}（${s.sid}·均分 ${s.avg}）</option>`).join('')}</select>
+        <button onclick="runConsult(this)">发起会诊（约 30-60 秒 · 4 次 LLM）</button>
+      </div>
+      <div id="csOut" style="margin-top:10px"></div></div>
+    <div class="card"><b>🏫 年级教师智能体总览（80 师 · 班均掌握度横条，红&lt;0.4 ≤ 黄&lt;0.6 ≤ 绿）</b>
+      <div id="tStaff" style="margin-top:8px">加载中…</div></div>
+    <div class="card"><b>🤖 AI 教学助手（ReAct 智能体 · 班级诊断 SOP · 多轮记忆）</b>
+      <div style="font-size:12px;color:#888;margin:6px 0">
+        群体："班上最薄弱的是什么？" · 个体："s001 该怎么复习？" · 追问："给最弱的那个学生出道题"</div>
+      <div id="tLog"></div>
+      <div class="chatin"><input id="tQ" placeholder="向助手提问..." onkeydown="if(event.key==='Enter')askAssistant()">
+      <button onclick="askAssistant()">发送</button></div></div>`;
+  }catch(e){
+    dash.innerHTML='<div class="card"><span class="warn">班情加载失败：'+(e.message||e)+
+      '。</span>请确认服务已启动、或先在 <a href="/officer">总监驾驶舱</a> 完成 ①合成人口 后 <a href="javascript:location.reload()">刷新重试</a>。</div>';
+  }
+  loadGradeInsight();
+  loadStaff();
+  loadTeachPack();
+}
+// ---------- 检索增强备课包（班级薄弱 × 全校疫情 × 三通道检索） ----------
+async function loadTeachPack(){
+  const box=document.getElementById('tpOut');
+  if(!box) return;
+  try{
+    const d=await j('/api/teacher/teach_pack?tid='+tid);
+    if(!d.items||!d.items.length){box.innerHTML='<span style="color:#888">班级暂无足够掌握度数据</span>';return;}
+    const chip=(on,txt)=>on?`<span style="font-size:11px;padding:1px 8px;border:1px solid #8e44ad;border-radius:10px;margin-left:4px">${txt}</span>`:'';
+    box.innerHTML=d.items.map(it=>`
+      <div style="margin:10px 0;padding:10px;border:1px solid rgba(142,68,173,.35);border-radius:10px">
+        <b>${it.name}</b>
+        ${chip(1,`优先级 ${it.priority}`)}${chip(1,`班均 ${it.class_mastery}`)}
+        ${chip(it.weak_n>0,`薄弱 ${it.weak_n} 人`)}${chip(it.r0>0,`全校R0 ${it.r0}·感染${it.infected_n??0}人`)}
+        ${chip(it.channels===3,'3通道')}${chip(it.channels===2,'2通道')}
+        ${(it.hits||[]).map(h=>`
+          <div style="margin:6px 0;padding:6px 10px;border-left:3px solid #8e44ad;background:rgba(142,68,173,.05);font-size:13px">
+            <div style="font-size:11px;color:#888;margin-bottom:2px">RRF ${h.rrf.toFixed(4)}
+              ${chip(h.dense&&h.dense.rank,'dense '+h.dense.score)}${chip(h.sparse&&h.sparse.rank,'bm25 '+h.sparse.bm25)}${chip(h.remote,'语义 '+(h.remote?h.remote.score:''))}</div>
+            ${h.text}</div>`).join('')||'<div style="color:#888;font-size:12px">课件库无命中——此考点课件覆盖缺失，需补充资料。</div>'}
+        ${(it.graph_context||[]).length?`<div style="font-size:12px;color:#666;margin-top:4px">GraphRAG 先修链：${it.graph_context.map(g=>`${g.name}（${g.relation}${g.mastery!=null?'·掌握'+g.mastery:''}）`).join('、')}</div>`:''}
+      </div>`).join('');
+  }catch(e){box.innerHTML='<span class="warn">备课包加载失败：'+(e.message||e)+'</span>';}
+}
+// 支持 ?tid=T001 直达（便于演示链接与自动化截图）
+const qsTid=new URLSearchParams(location.search).get('tid');
+if(qsTid){document.getElementById('tid').value=qsTid;login();}
+
+// ---------- 年级督导员（ReAct 智能体） ----------
+async function loadGradeInsight(){
+  const box=document.getElementById('gradeOut');
+  if(!box) return;
+  try{
+    const r=await j('/api/teacher/grade-insight?tid='+tid);
+    if(!r.answer){box.innerHTML='<span style="color:#888">年级督导员暂无结论</span>';return;}
+    const steps=r.steps||[];
+    const stepsHtml=steps.map(s=>{
+      const args=Object.entries(s.args||{}).map(([k,v])=>k+'='+JSON.stringify(v).slice(0,60)).join(', ');
+      return `<div style="margin:3px 0;font-size:11px">🔧 <b>${s.tool}</b>(${args})<br><span style="color:#888">↳ ${(s.result||'').slice(0,120)}</span></div>`;
+    }).join('');
+    box.innerHTML=
+      `<div style="padding:10px;background:rgba(39,174,96,.08);border-radius:8px;line-height:1.8">${r.answer}</div>`+
+      (steps.length?`<details style="margin-top:6px;font-size:11px;color:#888"><summary>🤖 督导员推理轨迹（${steps.length} 次工具调用）</summary>${stepsHtml}</details>`:'');
+  }catch(e){box.innerHTML='<span style="color:#e74c3c">年级督导加载失败</span>';}
+}
+
+// ---------- 年级教师智能体总览（复用驾驶舱 overview 的 80 班数据） ----------
+async function loadStaff(){
+  const box=document.getElementById('tStaff');
+  try{
+    const d=await j('/api/society/overview');
+    if(!d.classes||!d.classes.length){box.innerHTML='<span class="warn">尚无合成人口：请先在总监驾驶舱完成 ①合成人口。</span>';return;}
+    const sorted=[...d.classes].sort((a,b)=>b.avg-a.avg);
+    box.innerHTML=sorted.map(c=>{
+      const col=c.avg<0.4?'#e74c3c':(c.avg<0.6?'#f39c12':'#27ae60');
+      const me=c.tid===tid?'<b style="color:#8e44ad"> ◀ 我的班</b>':'';
+      return `<div class="trow"><span class="tname">${c.tid} ${c.name}${me}</span>
+        <div class="tbar"><div style="width:${(c.avg*100).toFixed(1)}%;background:${col}"></div></div>
+        <span class="tavg" style="color:${col}">${c.avg.toFixed(2)}</span></div>`;
+    }).join('')+
+    `<div style="font-size:12px;color:#888;margin-top:6px">共 ${d.classes.length} 个教师智能体（按班均掌握度降序）· 全区均分 ${(d.avg_mastery*100).toFixed(1)}%</div>`;
+  }catch(e){ box.innerHTML='<span class="warn">总览加载失败。</span>'; }
+}
+
+// ---------- 教研会诊 ----------
+async function runConsult(btn){
+  const sid=document.getElementById('csSid').value;
+  if(!sid)return;
+  btn.disabled=true;btn.textContent='会诊中…（三角色独立诊断 → 主席共识）';
+  const out=document.getElementById('csOut');
+  out.innerHTML='<div class="role">会诊进行中：导师 → 教研组长 → 学习科学专家 → 教学主席…</div>';
+  try{
+    const d=await j2('/api/teacher/consult',{sid});
+    out.innerHTML=`<div style="font-size:12px;color:#888">${d.brief}</div>`+
+      d.views.map(v=>`<div class="role"><b>🩺 ${v.role}：</b>${v.view}</div>`).join('')+
+      `<div class="consensus"><b>📋 教学主席共识：</b>${d.consensus}</div>`;
+  }catch(e){ out.innerHTML='<div class="role warn">会诊失败：'+e+'</div>'; }
+  btn.disabled=false;btn.textContent='发起会诊（约 30-60 秒 · 4 次 LLM）';
+}
+async function j2(u,b){return (await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})).json()}
+
+let tSession = "";
+async function askAssistant(){
+  const q=document.getElementById('tQ').value.trim();
+  if(!q) return;
+  const log=document.getElementById('tLog');
+  document.getElementById('tQ').value='';
+  const round=document.createElement('div');
+  round.className='letter';
+  round.innerHTML=`<b>👩‍🏫 你：</b>${q.replace(/</g,'&lt;')}<div style="margin-top:6px"><div class="step">助手思考中…（正在自主选择工具）</div></div><div class="tAns"></div>`;
+  log.appendChild(round);
+  log.scrollIntoView({behavior:'smooth',block:'end'});
+  try{
+    const r=await fetch('/api/teacher/assistant',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:q,session_id:tSession})});
+    const d=await r.json();
+    tSession=d.session_id||tSession;
+    round.querySelector('.step').outerHTML=(d.steps||[]).map(s=>{
+      const a=Object.entries(s.args||{}).map(([k,v])=>`${k}=${JSON.stringify(v)}`).join(', ');
+      return `<div class="step">🔧 <b>${s.tool}</b>(${a})<br><span style="color:#666">${(s.result||'').slice(0,160)}</span></div>`;
+    }).join('')||'<div class="step">（直接回答，未调用工具）</div>';
+    round.querySelector('.tAns').innerHTML=
+      `<b>🤖 助手：</b><br>${(d.answer||'').replace(/</g,'&lt;').replace(/\n/g,'<br>')}`;
+  }catch(e){
+    round.querySelector('.tAns').innerHTML='<span class="warn">助手请求失败，请稍后再试。</span>';
+  }
+}
+</script></body></html>

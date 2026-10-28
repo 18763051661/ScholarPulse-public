@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>ScholarPulse · 流动思维导图与学情把控</title>
+<style>
+  body { font-family:"Microsoft YaHei",sans-serif; background:#f6f2fb; color:#1a1a2e; margin:0; padding:22px; }
+  .wrap { max-width:1480px; margin:0 auto; }
+  h1 { color:#4a1a7a; font-size:21px; margin:0 0 10px; }
+  .card { background:#fff; border:1px solid #e2d7f3; border-radius:12px; padding:16px 20px; margin:14px 0; box-shadow:0 2px 10px rgba(74,26,122,.07); }
+  .card h2 { color:#6b2da0; font-size:15.5px; margin:2px 0 10px; }
+  input, button, textarea { font-family:inherit; font-size:14px; border-radius:7px; }
+  input { padding:7px 10px; border:1px solid #cbb3e6; width:120px; }
+  button { background:#4a1a7a; color:#fff; border:0; padding:8px 14px; cursor:pointer; margin:3px 4px 3px 0; transition:.2s; }
+  button:hover { background:#6b2da0; } button:active { transform:scale(.95); }
+  button.ghost { background:#fff; color:#4a1a7a; border:1px solid #4a1a7a; }
+  #msg { color:#27ae60; font-size:13px; margin-left:8px; }
+  .hint { font-size:12px; color:#8878a8; margin:2px 0 8px; }
+  /* ===== SVG 画布 ===== */
+   #svgBox { position:relative; height:max(560px,76vh); border:1px dashed #d8c7f0; border-radius:10px;
+            background:radial-gradient(circle at 30% 20%, #fbf9ff 0%, #f3edfb 100%); overflow:hidden; cursor:grab; }
+  #svgBox:active { cursor:grabbing; }
+  #mm { width:100%; height:100%; }
+  /* 流动虚线：dashoffset 无限平移 = 数据在管道里流动 */
+  .lnk { fill:none; stroke-width:2.2; opacity:.8; stroke-dasharray:7 6;
+         animation:flow 1.1s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset:-13; } }
+  .lnk.new { stroke-dashoffset:600; animation:draw .7s ease forwards, flow 1.1s .7s linear infinite; }
+  @keyframes draw { to { stroke-dashoffset:0; } }
+  /* 节点：位移用 CSS 变量，避免被按压/呼吸动画覆盖 */
+  .n { cursor:pointer; transform:translate(var(--tx),var(--ty)); transition:transform .55s cubic-bezier(.22,1.2,.36,1); }
+  .n rect { transition:.25s; transform-box:fill-box; transform-origin:center; }
+  .n:active rect { transform:scale(.88); }                      /* 按压反馈 */
+  .n:hover rect { filter:brightness(1.08) drop-shadow(0 2px 6px rgba(74,26,122,.35)); }
+  .n text { user-select:none; pointer-events:none; }
+  .weak rect { animation:pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 50% { stroke:#e74c3c; stroke-width:3; filter:drop-shadow(0 0 5px rgba(231,76,60,.65)); } }
+  .breath rect { animation:breath 3.2s ease-in-out infinite; }   /* 根/学科呼吸 */
+  @keyframes breath { 50% { transform:scale(1.06); } }
+  .flash rect { animation:flash 1s ease 2; }                     /* 饼图联动闪烁 */
+  @keyframes flash { 50% { stroke-width:4; filter:drop-shadow(0 0 8px #f39c12); } }
+  .rel { font-size:10.5px; fill:#8878a8; }
+  /* ===== 环形图 ===== */
+  .piebox { display:flex; align-items:center; gap:30px; flex-wrap:wrap; }
+  #pie text { pointer-events:none; }
+  #pie circle.seg { fill:none; stroke-width:36; cursor:pointer;
+                    transition:stroke-width .3s, opacity .3s, stroke-dashoffset 1s ease; }
+  #pie circle.seg:hover { stroke-width:48; }
+  .legend div { margin:5px 0; font-size:13.5px; }
+  .sw { display:inline-block; width:13px; height:13px; border-radius:3px; margin-right:7px; vertical-align:-2px; }
+  .note { border-bottom:1px dashed #e2d7f3; padding:6px 2px; font-size:13.5px; }
+  .note b { color:#6b2da0; font-size:12px; margin-right:8px; }
+  textarea { width:100%; box-sizing:border-box; border:1px solid #cbb3e6; padding:8px; min-height:56px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧠 流动学情导图 · 覆盖计算机专业全学科 · 层层推进</h1>
+
+  <div class="card">
+    学生 ID：<input id="sid" value="s001">
+    <button onclick="loadAll()">加载学情</button><span id="msg"></span>
+    <div class="hint">🖱 滚轮缩放 · 拖拽平移 · 双击节点居中放大 · 点击学科/章节展开下级 · 点击概念按压展开 GraphRAG 先修图谱 · 点击饼图分区联动闪烁同层节点 · 连线流光粒子 · 点击节点涟漪 · 「▶ 薄弱链巡游」自动逐个闪烁薄弱考点</div>
+  </div>
+
+  <div class="card">
+    <h2>🌳 知识思维导图（学科 → 章节 → 概念掌握度 → 补弱建议 / 先修图谱）</h2>
+    <button class="ghost" onclick="expandAll()">展开全部</button>
+    <button class="ghost" onclick="collapseChapters()">收起至章节</button>
+    <button class="ghost" onclick="fitView()">适应视图</button>
+    <button class="ghost" onclick="tour()">▶ 薄弱链巡游</button>
+    <div id="svgBox"><svg id="mm"></svg></div>
+  </div>
+
+  <div class="card">
+    <h2>🥧 掌握度分层环形图</h2>
+    <div class="piebox">
+      <svg id="pie" width="210" height="210"></svg>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 学习笔记</h2>
+    <textarea id="ntext" placeholder="记录你的理解、疑问、易错点……（会自动进入导出报告）"></textarea>
+    <button onclick="addNote()">添加笔记</button>
+    <div id="notes"></div>
+  </div>
+
+  <div class="card">
+    <h2>🧬 误区疫情自检：你的薄弱考点在全校的流行度（班级传播动力学 × 三通道检索证据）</h2>
+    <div id="epiCheck" style="font-size:13px">加载中…</div>
+  </div>
+
+  <div class="card">
+    <h2>🎭 AI 对抗陷阱题（LLM 针对你的错误模式实时生成 · 与确定性题库对照）</h2>
+    <div id="trapBox">
+      <button class="ghost" onclick="genTrap(this)">生成 3 道陷阱题（最薄弱考点 · 约 5-15 秒）</button>
+      <span id="trapMeta" style="font-size:12px;color:#888"></span>
+    </div>
+    <div id="trapOut" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h2>📤 导出学习报告（含概览/薄弱点/错题本/笔记）</h2>
+    <button class="ghost" onclick="dl('md')">Markdown</button>
+    <button class="ghost" onclick="dl('html')">HTML</button>
+    <button class="ghost" onclick="dl('pdf')">PDF</button>
+    <button class="ghost" onclick="dl('docx')">Word (DOCX)</button>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const SVGNS = "http://www.w3.org/2000/svg";
+const COLORS = {'基础(<0.4)':'#e74c3c','巩固(0.4-0.7)':'#f39c12','拓展(>0.7)':'#27ae60'};
+const tierOf = p => (p===null||p===undefined) ? '#8e44ad' : (p<0.4?'#e74c3c':(p<=0.7?'#f39c12':'#27ae60'));
+const tierNameOf = p => (p===null||p===undefined) ? '无数据' : (p<0.4?'基础(<0.4)':(p<=0.7?'巩固(0.4-0.7)':'拓展(>0.7)'));
+
+let ROOT=null, world=null, view={x:60,y:30,k:1}, bounds={x:0,y:0,w:100,h:100};
+const collapsed=new Set();                    // 折叠的学科/章节节点 id
+const neighborOpen=new Set(), neighborCache={};   // 概念 → 已展开的 GraphRAG 邻居
+
+/* 归一化：深度 + 路径唯一 id + 父指针 + 层级 kind（根→学科→章节→概念→叶） */
+function normalize(n, depth, id){
+  n.depth=depth; n.id=id||'R';
+  n.kind = depth===0?'root':depth===1?'course':depth===2?'chapter':depth===3?'concept':'leaf';
+  (n.children||[]).forEach((c,i)=>{ c.parent=n; normalize(c, depth+1, n.id+'/'+i); });
+}
+
+/* 可见子节点：折叠返回空；否则含已加载的 GraphRAG 邻居 */
+function allKids(n){
+  if(collapsed.has(n.id)) return [];
+  const kids=[...(n.children||[])];
+  const extra=neighborOpen.has(n.id)?neighborCache[n.id]:null;
+  if(extra) extra.forEach((g,i)=>kids.push({
+    id:n.id+'|g'+i, depth:n.depth+1, name:g.name, mastery:g.mastery,
+    rel:g.relation, cid:g.cid, kind:'neighbor', children:[], parent:n}));
+  return kids;
+}
+
+/* ============ 布局 + 渲染（单遍：布局并收集） ============ */
+function boxW(n){ return Math.min(28+[...n.name].length*12.6, 340); }
+
+function render(){
+  if(!ROOT) return;
+  let leaf=0; const nodes=[];
+  (function place(n){
+    const kids=allKids(n);
+    if(!kids.length){ n._y=leaf++*40; }
+    else { kids.forEach(place); n._y=(kids[0]._y+kids[kids.length-1]._y)/2; }
+    n._x=n.depth*230; n._w=boxW(n);
+    nodes.push(n);
+  })(ROOT);
+
+  const maxD=Math.max(...nodes.map(n=>n._x+n._w))+60;
+  const maxH=Math.max(leaf*40,320)+40;
+  bounds={x:0,y:0,w:maxD,h:maxH};
+  const svg=$('mm');
+  /* viewBox 固定为画布像素尺寸：缩放完全交给 view.k。
+     旧版用世界尺寸撑 viewBox 再塞进画布 = 双重缩小，30 门课展开后节点小到不可读 */
+  const rect=box.getBoundingClientRect();
+  svg.setAttribute('viewBox',`0 0 ${Math.max(rect.width,320)} ${Math.max(rect.height,320)}`);
+  svg.innerHTML='';
+  world=document.createElementNS(SVGNS,'g');
+  applyView();
+  svg.appendChild(world);
+
+  for(const n of nodes){                       // 连线（流动虚线 + 流光粒子）
+    if(!n.parent) continue;
+    const x1=n.parent._x+n.parent._w, y1=n.parent._y+14, x2=n._x, y2=n._y+14;
+    const path=document.createElementNS(SVGNS,'path');
+    const lc=n.kind==='neighbor'?'#8e44ad':tierOf(n.mastery);
+    path.setAttribute('d',`M ${x1} ${y1} C ${(x1+x2)/2} ${y1}, ${(x1+x2)/2} ${y2}, ${x2} ${y2}`);
+    path.setAttribute('class','lnk new');
+    path.setAttribute('stroke',lc);
+    path.setAttribute('id','lp'+nodes.indexOf(n));
+    world.appendChild(path);
+    /* 流光粒子：小光点沿贝塞尔路径从父节点流向子节点（数据流动隐喻） */
+    const dot=document.createElementNS(SVGNS,'circle');
+    dot.setAttribute('r','2.6'); dot.setAttribute('fill',lc); dot.setAttribute('opacity','.95');
+    dot.setAttribute('filter','drop-shadow(0 0 3px '+lc+')');
+    const am=document.createElementNS(SVGNS,'animateMotion');
+    am.setAttribute('dur',(1.7+Math.random()*1.5).toFixed(2)+'s');
+    am.setAttribute('repeatCount','indefinite');
+    am.setAttribute('begin',(-Math.random()*2).toFixed(2)+'s');
+    const mp=document.createElementNS(SVGNS,'mpath');
+    mp.setAttribute('href','#lp'+nodes.indexOf(n));
+    am.appendChild(mp); dot.appendChild(am);
+    world.appendChild(dot);
+    if(n.rel){
+      const t=document.createElementNS(SVGNS,'text');
+      t.setAttribute('x',(x1+x2)/2); t.setAttribute('y',(y1+y2)/2-4);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('class','rel');
+      t.textContent=n.rel; world.appendChild(t);
+    }
+  }
+  for(const n of nodes){                       // 节点
+    const g=document.createElementNS(SVGNS,'g');
+    g.setAttribute('class','n'+(n.kind==='concept'&&n.mastery!=null&&n.mastery<0.6?' weak':''));
+    g.dataset.tier=tierNameOf(n.mastery);
+    g.dataset.nid=n.id;
+    g.style.setProperty('--tx',n._x+'px'); g.style.setProperty('--ty',n._y+'px');
+    const isRoot=n.kind==='root', isCourse=n.kind==='course', isChap=n.kind==='chapter';
+    const w=n._w,h=28;
+    const r=document.createElementNS(SVGNS,'rect');
+    r.setAttribute('width',w); r.setAttribute('height',h); r.setAttribute('rx',14);
+    if(isRoot) r.setAttribute('fill','#4a1a7a');
+    else if(isCourse) r.setAttribute('fill','#6b2da0');
+    else if(isChap) r.setAttribute('fill','#8e44ad');
+    else if(n.kind==='concept'){ r.setAttribute('fill','#fff'); r.setAttribute('stroke',tierOf(n.mastery)); r.setAttribute('stroke-width',2); }
+    else if(n.kind==='neighbor'){ r.setAttribute('fill','#f5eefb'); r.setAttribute('stroke','#8e44ad'); r.setAttribute('stroke-dasharray','4 3'); }
+    else { r.setAttribute('fill','#fef9e7'); r.setAttribute('stroke','#c9a227'); r.setAttribute('stroke-dasharray','3 3'); }
+    if(isRoot||isCourse) g.classList.add('breath');
+    g.appendChild(r);
+    const t=document.createElementNS(SVGNS,'text');
+    t.setAttribute('x',w/2); t.setAttribute('y',h/2+4.5); t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size','12.5'); t.setAttribute('fill',isRoot||isCourse||isChap?'#fff':'#1a1a2e');
+    t.textContent=n.name.length>24?n.name.slice(0,23)+'…':n.name;
+    g.appendChild(t);
+    g.onclick=e=>{ e.stopPropagation(); onNode(n); };
+    g.ondblclick=e=>{ e.stopPropagation(); zoomTo(n); };   // 双击：居中放大到该节点
+    world.appendChild(g);
+  }
+}
+
+/* 点击涟漪：从节点中心扩散一圈光波 */
+function ripple(n){
+  if(n._x===undefined) return;
+  const c=document.createElementNS(SVGNS,'circle');
+  c.setAttribute('cx',n._x+n._w/2); c.setAttribute('cy',n._y+14);
+  c.setAttribute('r','8'); c.setAttribute('fill','none');
+  c.setAttribute('stroke',n.kind==='neighbor'?'#8e44ad':tierOf(n.mastery));
+  c.setAttribute('stroke-width','2.5'); c.setAttribute('opacity','.85');
+  const a1=document.createElementNS(SVGNS,'animate');
+  a1.setAttribute('attributeName','r'); a1.setAttribute('from','8');
+  a1.setAttribute('to','52'); a1.setAttribute('dur','.65s'); a1.setAttribute('fill','freeze');
+  const a2=document.createElementNS(SVGNS,'animate');
+  a2.setAttribute('attributeName','opacity'); a2.setAttribute('from','.85');
+  a2.setAttribute('to','0'); a2.setAttribute('dur','.65s'); a2.setAttribute('fill','freeze');
+  c.appendChild(a1); c.appendChild(a2);
+  world.appendChild(c);
+  setTimeout(()=>c.remove(),700);
+}
+
+/* 学科/章节点击 → 展开收起；概念点击 → GraphRAG 邻居展开/收起 */
+function onNode(n){
+  ripple(n);
+  if(n.kind==='concept'){
+    if(neighborOpen.has(n.id)&&neighborCache[n.id]){ neighborOpen.delete(n.id); render(); return; }
+    if(!neighborCache[n.id]){
+      fetch(`/api/graph/neighbors?sid=${$('sid').value.trim()}&cid=${n.cid}`)
+        .then(r=>r.json()).then(d=>{ neighborCache[n.id]=d.neighbors||[]; neighborOpen.add(n.id); render(); })
+        .catch(()=>{ neighborCache[n.id]=[]; neighborOpen.add(n.id); render(); });
+      return;
+    }
+    neighborOpen.add(n.id); render();
+  } else if(n.kind==='course'||n.kind==='chapter'){
+    if(collapsed.has(n.id)) collapsed.delete(n.id); else collapsed.add(n.id);
+    render();
+  }
+}
+function defaultCollapse(){
+  collapsed.clear();
+  (function walk(n){ if(n.kind==='chapter') collapsed.add(n.id);
+    (n.children||[]).forEach(walk); })(ROOT);
+}
+function expandAll(){ collapsed.clear(); render(); fitView(); }
+function collapseChapters(){ defaultCollapse(); render(); fitView(); }
+
+/* ▶ 薄弱链巡游：自动展开最薄弱考点的所在学科/章节，逐个点亮+涟漪 */
+function tour(){
+  const weak=[];
+  (function w(n){ if(n.kind==='concept'&&n.mastery!=null&&n.mastery<0.6) weak.push(n);
+    (n.children||[]).forEach(w); })(ROOT);
+  weak.sort((a,b)=>a.mastery-b.mastery);
+  if(!weak.length) return alert('没有薄弱考点，继续保持！');
+  const seq=weak.slice(0,4);
+  const open=new Set();
+  seq.forEach(n=>{ if(n.parent) open.add(n.parent.id);
+                   if(n.parent&&n.parent.parent) open.add(n.parent.parent.id); });
+  open.forEach(id=>collapsed.delete(id));
+  render(); fitView();
+  seq.forEach((n,i)=>setTimeout(()=>{
+    const g=world.querySelector(`g.n[data-nid="${n.id}"]`);
+    if(g){ g.classList.add('flash'); ripple(n);
+           setTimeout(()=>g.classList.remove('flash'),2200); }
+  },500+i*1000));
+}
+
+/* ============ 平移缩放 + 适应视图 ============ */
+let drag=null;
+const box=$('svgBox');
+box.addEventListener('mousedown',e=>{ drag={x:e.clientX-view.x,y:e.clientY-view.y}; });
+window.addEventListener('mousemove',e=>{ if(drag){ view.x=e.clientX-drag.x; view.y=e.clientY-drag.y; applyView(); } });
+window.addEventListener('mouseup',()=>drag=null);
+box.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY<0?1.12:0.89, nk=Math.min(2.5,Math.max(0.25,view.k*f));
+  const rect=box.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  view.x=mx-(mx-view.x)*nk/view.k; view.y=my-(my-view.y)*nk/view.k; view.k=nk; applyView();
+},{passive:false});
+function applyView(){
+  if(!world) return;
+  world.setAttribute('transform',`translate(${view.x},${view.y}) scale(${view.k})`);
+}
+function fitView(){
+  if(!world) return;
+  const rect=box.getBoundingClientRect();
+  const k=Math.min(1.35,(rect.width-30)/bounds.w,(rect.height-30)/bounds.h);
+  view.k=Math.max(0.22,k);
+  view.x=(rect.width-bounds.w*view.k)/2;
+  view.y=(rect.height-bounds.h*view.k)/2;
+  applyView();
+}
+/* 双击节点：平滑居中放大（动态聚焦） */
+function zoomTo(n){
+  if(n._x===undefined) return;
+  const rect=box.getBoundingClientRect();
+  view.k=1.25;
+  view.x=rect.width/2-(n._x+n._w/2)*view.k;
+  view.y=rect.height/2-(n._y+14)*view.k;
+  applyView();
+}
+window.addEventListener('resize',()=>{ if(ROOT) render(); });
+
+/* ============ 环形图（扫入动画 + 悬停膨胀 + 点击联动） ============ */
+function renderPie(pie,avg){
+  const svg=$('pie'); svg.innerHTML='';
+  $('legend').innerHTML='';
+  const C=105,R=70,CIRC=2*Math.PI*R, sum=pie.reduce((s,d)=>s+d.n,0)||1;
+  let acc=0;
+  for(const d of pie){
+    const frac=d.n/sum, len=frac*CIRC;
+    const c=document.createElementNS(SVGNS,'circle');
+    c.setAttribute('cx',C); c.setAttribute('cy',C); c.setAttribute('r',R);
+    c.setAttribute('class','seg'); c.setAttribute('stroke',COLORS[d.name]||'#999');
+    c.style.strokeDasharray=`${len} ${CIRC-len}`;
+    c.style.strokeDashoffset=CIRC;                          // 起始：空
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      c.style.strokeDashoffset=-acc*CIRC;                   // 过渡到目标 = 扫入动画
+    }));
+    c.onclick=()=>flashTier(d.name);
+    svg.appendChild(c); acc+=frac;
+    $('legend').insertAdjacentHTML('beforeend',
+      `<div><span class="sw" style="background:${COLORS[d.name]}"></span>${d.name}：${d.n} 考点（${d.pct}%）</div>`);
+  }
+  const cx=document.createElementNS(SVGNS,'text');
+  cx.setAttribute('x',C); cx.setAttribute('y',C-4); cx.setAttribute('text-anchor','middle');
+  cx.setAttribute('font-size','22'); cx.setAttribute('fill','#4a1a7a'); cx.setAttribute('font-weight','bold');
+  cx.textContent=Math.round(avg*100)+'%';
+  const cy=document.createElementNS(SVGNS,'text');
+  cy.setAttribute('x',C); cy.setAttribute('y',C+16); cy.setAttribute('text-anchor','middle');
+  cy.setAttribute('font-size','11'); cy.setAttribute('fill','#8878a8');
+  cy.textContent=`${sum} 考点均掌握`;
+  svg.appendChild(cx); svg.appendChild(cy);
+}
+function flashTier(tier){
+  document.querySelectorAll('.n').forEach(g=>{
+    g.classList.remove('flash');
+    if(g.dataset.tier===tier){ void g.getBoundingClientRect(); g.classList.add('flash'); }
+  });
+}
+
+/* ============ 数据加载 ============ */
+async function loadAll(){
+  const sid=$('sid').value.trim();
+  $('msg').textContent='加载中…';
+  const [mm,pie,notes]=await Promise.all([
+    fetch(`/api/mindmap?sid=${sid}`).then(r=>r.json()),
+    fetch(`/api/pie?sid=${sid}`).then(r=>r.json()),
+    fetch(`/api/notes?sid=${sid}`).then(r=>r.json()),
+  ]);
+  ROOT=mm; normalize(ROOT,0,'R');
+  collapsed.clear(); neighborOpen.clear();
+  Object.keys(neighborCache).forEach(k=>delete neighborCache[k]);
+  defaultCollapse();                       // 默认收到章节层，点击层层展开
+  let s=0,c=0; (function w(n){ if(n.kind==='concept'&&n.mastery!=null){s+=n.mastery;c++;}
+    (n.children||[]).forEach(w); })(mm);
+  render(); fitView(); renderPie(pie, c?s/c:0); renderNotes(notes);
+  $('msg').textContent=`已加载 ${sid}`;
+  loadEpiCheck(sid);                      // 🧬 误区疫情自检（异步，不阻塞主渲染）
+}
+
+// ---------- 🧬 误区疫情自检：我的薄弱 × 全校传播 R0 × 三通道检索证据 ----------
+async function loadEpiCheck(sid){
+  const box=$('epiCheck'); if(!box) return;
+  try{
+    const d=await fetch(`/api/student/epidemic_check?sid=${sid}&top_k=3`).then(r=>r.json());
+    if(d.msg){box.innerHTML=`<i style="color:#888">${d.msg}</i>`;return;}
+    if(!d.items||!d.items.length){box.innerHTML='<i style="color:#888">暂无薄弱考点（全部达标）</i>';return;}
+    const chip=t=>`<span style="font-size:11px;padding:1px 8px;border:1px solid #e67e22;border-radius:10px;margin-left:4px">${t}</span>`;
+    box.innerHTML=`<div style="color:#888;margin-bottom:6px">${d.rule}</div>`+d.items.map(it=>`
+      <div style="margin:8px 0;padding:8px 12px;border:1px solid rgba(230,126,34,.4);border-radius:10px">
+        <b>${it.name}</b>${chip(`个人风险 ${it.risk}`)}${chip(`掌握 ${it.mastery}`)}
+        ${chip(`全校R0 ${it.r0}`)}${chip(`感染 ${it.infected_n??0} 人`)}
+        ${chip(it.channels===3?'3通道检索':'2通道检索')}
+        ${(it.hits||[]).slice(0,1).map(h=>`
+          <div style="margin-top:4px;padding:5px 9px;border-left:3px solid #e67e22;background:rgba(230,126,34,.06);font-size:12px">
+            📖 课件证据：${h.text.slice(0,90)}…</div>`).join('')}
+      </div>`).join('');
+  }catch(e){box.innerHTML=`<i style="color:#888">疫情自检不可用（${e}）</i>`;}
+}
+
+// ---------- 🎭 AI 对抗陷阱题（受约束生成：Schema 校验 + 证据接地） ----------
+async function genTrap(btn){
+  if(btn){btn.disabled=true;btn.textContent='检索证据 → 受约束生成中…';}
+  const sid=$('sid').value.trim();
+  try{
+    const d=await fetch('/api/quiz/ai_trap',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sid,n:3})}).then(r=>r.json());
+    if(d.msg){$('trapOut').innerHTML=`<i style="color:#888">${d.msg}</i>`;return;}
+    $('trapMeta').textContent=`考点「${d.concept}」 · ${d.channels===3?'3通道检索接地':'离线双通道'}${d.note?' · '+d.note:''}`;
+    const letters=['A','B','C','D'];
+    $('trapOut').innerHTML=d.questions.map((q,i)=>`
+      <div class="note" style="border-left:3px solid #8e5cf6">
+        <b>陷阱题 ${i+1}</b> <span style="color:#888">（陷阱：${q.trap||'—'}）</span><br>${q.question}
+        <div style="margin:6px 0">${q.options.map((o,j)=>
+          `<div class="opt" data-q="${i}" data-l="${letters[j]}" onclick="pickTrap(this)">${letters[j]}. ${o}</div>`).join('')}</div>
+        <div id="trapExplain${i}" style="display:none;font-size:12px;color:#666">
+          正确答案：${q.answer} · ${q.explanation}${q.evidence?`<br>📖 证据：「${q.evidence.slice(0,60)}…」`:''}</div>
+      </div>`).join('')||'<i style="color:#888">本题未通过生成校验，请重试</i>';
+    window._trapData=d.questions;
+  }catch(e){$('trapOut').innerHTML=`<i style="color:#888">生成失败（${e}）</i>`;}
+  if(btn){btn.disabled=false;btn.textContent='生成 3 道陷阱题（最薄弱考点 · 约 5-15 秒）';}
+}
+function pickTrap(el){
+  const i=+el.dataset.q, q=window._trapData[i], picked=el.dataset.l;
+  const box=$(`trapExplain${i}`); box.style.display='block';
+  el.style.background=picked===q.answer?'rgba(46,204,113,.15)':'rgba(231,76,60,.15)';
+  el.style.borderColor=picked===q.answer?'#27ae60':'#e74c3c';
+}
+
+function renderNotes(list){
+  $('notes').innerHTML=list.map(n=>`<div class="note"><b>${n.t}</b>${n.text}</div>`).join('')||'<i>暂无笔记</i>';
+}
+async function addNote(){
+  const sid=$('sid').value.trim(), text=$('ntext').value.trim();
+  if(!text) return;
+  await fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sid,text})});
+  $('ntext').value='';
+  renderNotes(await fetch(`/api/notes?sid=${sid}`).then(r=>r.json()));
+}
+function dl(fmt){ window.open(`/api/report/export?sid=${$('sid').value.trim()}&fmt=${fmt}`); }
+/* 支持 URL 参数直达：?sid=xxx 自动加载指定学生；&tour=1 加载完自动薄弱链巡游（首页一键直达） */
+const _q = new URLSearchParams(location.search);
+if (_q.get('sid')) $('sid').value = _q.get('sid');
+loadAll().then(() => { if (_q.get('tour') === '1') setTimeout(tour, 400); });
+</script>
+</body>
+</html>

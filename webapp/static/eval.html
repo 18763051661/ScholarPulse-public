@@ -1,0 +1,117 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScholarPulse · 检索评测</title>
+<style>
+:root{--bg:#0b1020;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);
+  --acc:#6c8cff;--good:#2ee6a8;--warn:#ffb454;--bad:#ff6b81;--txt:#e8ecff;--mut:#9fb0e8}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,"Microsoft YaHei",sans-serif;
+  background:radial-gradient(1200px 700px at 70% -10%,#1b2a5e 0%,var(--bg) 55%);
+  color:var(--txt);min-height:100vh;padding:26px 30px}
+.wrap{max-width:1180px;margin:0 auto}
+.head{display:flex;align-items:flex-end;gap:14px;margin-bottom:6px}
+h1{margin:0;font-size:22px;font-weight:800;background:linear-gradient(90deg,#6c8cff,#b06cff);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:12px;color:var(--mut);margin-bottom:16px}
+button{background:linear-gradient(90deg,#5b7cff,#8a5bff);color:#fff;border:0;
+  padding:9px 16px;border-radius:9px;cursor:pointer;font-size:13px}
+button:disabled{opacity:.5;cursor:default}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;backdrop-filter:blur(8px)}
+.kpi h3{margin:0 0 6px;font-size:12px;color:var(--mut);letter-spacing:.5px;font-weight:400}
+.kpi .v{font-size:28px;font-weight:800}
+.kpi .u{font-size:12px;color:var(--mut);margin-left:4px;font-weight:400}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:center;border-bottom:1px solid rgba(255,255,255,.07)}
+th{color:var(--mut);font-weight:500;font-size:12px}
+tr.hi td{background:rgba(108,140,255,.14);font-weight:700;color:#dfe7ff}
+.bars{margin-top:6px}
+.bl{font-size:12px;color:var(--mut);margin:10px 0 4px}
+.bar{height:9px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;margin-bottom:5px}
+.bar>i{display:block;height:100%;border-radius:5px}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;margin-left:8px}
+.ok{background:rgba(46,230,168,.16);color:#8ff0cd;border:1px solid rgba(46,230,168,.4)}
+.note{font-size:12px;color:var(--mut);line-height:1.9;margin-top:10px}
+a{color:#9fb0e8}
+</style></head><body>
+<div class="wrap">
+  <div class="head">
+    <h1>RAG 检索评测</h1>
+    <div style="margin-left:auto"><button id="btn" onclick="load()">重新运行</button></div>
+  </div>
+  <div class="sub">固定语料 · 6 条查询 · 三通道对比 · 零 LLM 依赖 · 离线可复现</div>
+
+  <div class="kpis">
+    <div class="card kpi"><h3>HYBRID Hit@1</h3><div class="v" id="k1">—</div></div>
+    <div class="card kpi"><h3>HYBRID Hit@3</h3><div class="v" id="k2" style="color:#2ee6a8">—</div></div>
+    <div class="card kpi"><h3>MRR</h3><div class="v" id="k3" style="color:#b06cff">—</div></div>
+    <div class="card kpi"><h3>检索 P95</h3><div class="v" id="k4" style="color:#ffb454">—<span class="u">ms</span></div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3 style="margin:0 0 10px;font-size:13px;color:var(--mut)">三通道指标对比</h3>
+    <table id="tb">
+      <thead><tr><th>通道</th><th>Hit@1</th><th>Hit@3</th><th>MRR</th></tr></thead>
+      <tbody><tr><td colspan="4" style="color:#7c8bb8">加载中…</td></tr></tbody>
+    </table>
+    <div class="bars" id="bars"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 10px;font-size:13px;color:var(--mut)">评测口径</h3>
+    <div class="note" id="meta">—</div>
+  </div>
+
+  <div style="margin-top:18px;font-size:12px"><a href="/">← 返回工作台</a></div>
+</div>
+<script>
+const COL = {dense:"#6c8cff", sparse:"#2ee6a8", hybrid:"#b06cff"};
+const NAME = {dense:"Dense（特征哈希）", sparse:"Sparse（BM25/CSR）", hybrid:"Hybrid（RRF 融合）"};
+
+function row(k, m, hi){
+  return `<tr class="${hi ? 'hi' : ''}"><td style="text-align:left">${NAME[k]}</td>
+    <td>${m["hit@1"].toFixed(3)}</td><td>${m["hit@3"].toFixed(3)}</td><td>${m.mrr.toFixed(3)}</td></tr>`;
+}
+
+function bars(d){
+  const keys = ["dense","sparse","hybrid"], ms = ["hit@1","hit@3","mrr"];
+  let h = "";
+  ms.forEach(m => {
+    h += `<div class="bl">${m}</div>`;
+    keys.forEach(k => {
+      const v = d[k][m];
+      h += `<div class="bar"><i style="width:${Math.max(v*100,2)}%;background:${COL[k]}"></i></div>`;
+    });
+  });
+  return h;
+}
+
+async function load(){
+  const b = document.getElementById("btn");
+  b.disabled = true; b.textContent = "运行中…";
+  try{
+    const r = await fetch("/api/rag/eval");
+    const d = await r.json();
+    document.getElementById("k1").textContent = d.hybrid["hit@1"].toFixed(3);
+    document.getElementById("k2").textContent = d.hybrid["hit@3"].toFixed(3);
+    document.getElementById("k3").textContent = d.hybrid.mrr.toFixed(3);
+    document.getElementById("k4").innerHTML = d.latency.p95_ms + '<span class="u">ms</span>';
+    document.querySelector("#tb tbody").innerHTML =
+      row("dense", d.dense) + row("sparse", d.sparse) + row("hybrid", d.hybrid, true);
+    document.getElementById("bars").innerHTML = bars(d);
+    const L = d.latency;
+    document.getElementById("meta").innerHTML =
+      `语料 ${d.n_chunks} 块 · 查询 ${d.n_queries} 条 · 每条查询标注 1 个正确块，` +
+      `因此 <b>Recall@K = Hit@K</b>。<br>` +
+      `延迟基于 ${L.runs} 次采样：平均 ${L.avg_ms} ms · P50 ${L.p50_ms} ms · P95 ${L.p95_ms} ms。` +
+      `<span class="tag ok">${d.conclusion}</span><br>` +
+      `指标只反映检索链路在固定小语料上的正确性，不代表真实课件规模下的绝对召回率。`;
+  }catch(e){
+    document.querySelector("#tb tbody").innerHTML =
+      `<tr><td colspan="4" style="color:#ff6b81">运行失败：${e}</td></tr>`;
+  }
+  b.disabled = false; b.textContent = "重新运行";
+}
+load();
+</script>
+</body></html>
